@@ -1,0 +1,582 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>OSI / TCP-IP Network Simulator + Labs</title><style>
+:root{--bg:#f4f6f9;--pn:#fff;--tx:#1b2230;--mu:#667085;--bd:#d6dbe4;--ac:#2563eb;--ok:#15803d;--bad:#b91c1c;--hl:#fff3c4;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#11141b;--pn:#1a1f29;--tx:#e6e9ef;--mu:#9aa3b2;--bd:#323a48;--ac:#7aa7ff;--ok:#4ade80;--bad:#f87171;--hl:#4a4217}}
+:root[data-theme="dark"]{--bg:#11141b;--pn:#1a1f29;--tx:#e6e9ef;--mu:#9aa3b2;--bd:#323a48;--ac:#7aa7ff;--ok:#4ade80;--bad:#f87171;--hl:#4a4217}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:13px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+header,.pn{background:var(--pn);border:1px solid var(--bd);border-radius:10px;margin:8px;padding:8px 10px}
+header{display:flex;flex-wrap:wrap;gap:6px;align-items:center}h3{margin:4px 0}
+button,select,input{font:inherit;color:var(--tx);background:var(--pn);border:1px solid var(--bd);border-radius:6px;padding:3px 7px}
+button{cursor:pointer}button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+main{display:grid;grid-template-columns:minmax(0,1fr) 370px;gap:0}@media(max-width:900px){main{grid-template-columns:1fr}}
+svg{width:100%;height:auto;background:var(--bg);border-radius:8px;touch-action:none}svg text{fill:var(--tx);font-size:11px;text-anchor:middle}
+table{border-collapse:collapse;width:100%;margin:4px 0}td,th{border-bottom:1px solid var(--bd);padding:2px 5px;text-align:left;vertical-align:top;word-break:break-word}
+tr.ch td{background:var(--hl)}.mu{color:var(--mu)}.bad{color:var(--bad)}.ok{color:var(--ok)}
+#tl{max-height:230px;overflow:auto}#tl tr{cursor:pointer}#tl tr.sel td{outline:0;background:var(--hl)}.k{font-weight:600}
+.row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px}details{margin:8px}
+.ov{display:grid;grid-template-columns:1fr .8fr 1fr;gap:5px 8px;margin:8px 0;font-size:12px}.ov h4{margin:0;text-align:center}
+.oc{border:1px solid var(--bd);border-radius:8px;padding:4px 6px;min-height:50px;opacity:.28;cursor:pointer;transition:opacity .3s}.oc.on{opacity:1}.oc.cur{border-color:var(--ac);box-shadow:0 0 0 2px var(--ac)}
+.oc small{display:block;color:var(--mu)}.bk{display:inline-block;padding:1px 6px;margin:1px;border-radius:4px;color:#fff;font-size:11px}
+@keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}.oc.an{animation:up .5s both}
+.ly{border-left:6px solid;padding:7px 9px;margin:4px 0;background:var(--bg);border-radius:0 8px 8px 0;cursor:pointer;transition:opacity .3s}.ly.cur{outline:2px solid var(--ac)}
+.wr{border:3px solid;border-radius:10px;padding:7px;background:var(--pn)}.wl{display:block;color:#fff;font-size:11px;padding:2px 7px;border-radius:5px;margin-bottom:6px;overflow:hidden;max-height:26px;word-break:break-all}
+.pk{background:#2563eb;color:#fff;text-align:center;padding:12px;border-radius:7px;font-size:17px;font-weight:600}.bt{font-family:monospace;margin-top:8px;padding:8px;background:#475569;color:#fff;border-radius:7px;word-break:break-all}
+@keyframes un{to{border-width:0;padding:0}}@keyframes unl{to{max-height:0;padding:0;margin:0;opacity:0}}
+.jc{display:flex;overflow-x:auto;margin:8px 0}.jd{min-width:96px;flex:1}.jd h5{margin:0 0 3px;text-align:center;font-size:12px}
+.jx{height:30px;margin:2px;border:1px solid var(--bd);border-radius:6px;font-size:10.5px;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.1;overflow:hidden}
+.jx.na{opacity:.12}.jx.hi{background:var(--ac);color:#fff;border-color:var(--ac);font-weight:700}.jw{width:46px;flex:none;padding-top:20px}.jw .jx{border:0;margin:2px 0}
+.ln{height:4px;width:100%;background:var(--bd)}.ln.on{background:repeating-linear-gradient(90deg,#f59e0b 0 6px,transparent 6px 12px);animation:mv .5s linear infinite}@keyframes mv{to{background-position:12px 0}}
+#svg{background:#000}
+</style></head><body><nav id="nv" class="pn row" style="margin:8px"><b>Networking Lab</b><button data-v="sim" class="on">Simulator</button><button data-v="fr">Framing Lab</button><button data-v="sn">Subnet Lab</button><button data-v="ts">Lab self-tests</button><button id="thm">◐ Theme</button></nav><div id="simApp">
+<header><b>OSI / TCP-IP Network Simulator</b>
+<select id="sc" onchange="load(this.value);draw()"><option value="A">A/B/C · 3 PCs on a switch</option><option value="D">D/I · Two subnets + router</option><option value="E">E · Two routers</option><option value="X">Blank · build your own</option></select>
+<button onclick="back()">◀ Back</button><button onclick="doStep()">Step ▶</button><button id="bPlay" onclick="play()">▶ Play</button><button onclick="load(U.sc);draw()">Reset</button>
+Speed <input type="range" min=".25" max="3" step=".25" value="1" style="width:90px" oninput="U.spd=+this.value">
+<button onclick="tests()">Run self-tests</button><span id="st" class="mu"></span></header>
+<main><div><div class="pn"><div class="row" style="margin:0 0 6px"><button onclick="U.mode='sel';U.a=null;draw()" id="m_sel">Select / move</button><button onclick="U.mode='link';U.a=null;draw()" id="m_link">Link</button><button onclick="U.mode='del';U.a=null;draw()" id="m_del">Delete</button>
+<button onclick="add('pc')">+PC</button><button onclick="add('sw')">+Switch</button><button onclick="add('rt')">+Router</button><span id="err" class="bad"></span></div>
+<svg id="svg" viewBox="0 0 720 340"></svg><div class="mu">Select mode: drag devices; click a cable to bring it down/up. Link mode: click two devices. The frame on the cable is the one just delivered (ETH | sMAC | dMAC). Yellow callout = what the device did; every switch has its own MAC table and every router its own routing table.</div></div>
+<div class="pn" id="send"></div><div class="pn" id="jny"></div><div class="pn" id="lab" style="overflow-x:auto"></div><div class="pn" id="jr" style="overflow-x:auto"></div><div class="pn" id="tl"></div></div>
+<aside class="pn"><div class="row" id="tabs"></div><div id="side"></div></aside></main>
+<details class="pn"><summary class="k">Tutorial · limits</summary><p>1) Pick scenario D. 2) Select PC1 → Send ping to PC2’s IP. 3) Press Step repeatedly: ARP request is broadcast, switch learns MACs, router does longest-prefix match and TTL−1, then new MACs on the far LAN. 4) Click any event, open the Packet tab: highlighted rows are fields that changed since the previous hop (MACs, TTL) while IP src/dst stay. Build your own: +PC/+Switch/+Router, Link mode, then set IPs in the Device tab.</p>
+<p class="mu"><b>Educational simulation, not a real emulator.</b> Not implemented: DNS/HTTP, DHCP, VLANs, NAT, hubs/collisions, wireless, TCP retransmission/windowing (fields shown, values fixed), ICMP error messages, MAC aging, fragmentation. TCP/UDP use fixed ports (TCP 80, UDP 5000). Presentation/Session layers have no real headers here and are explained rather than simulated.</p></details></div><div id="labApp" hidden></div>
+<script>
+const NS='http://www.w3.org/2000/svg',BC='ff:ff:ff:ff:ff:ff',IC={pc:'🖥️',sw:'🔀',rt:'🧭'},LN={7:'Application',6:'Presentation',5:'Session',4:'Transport',3:'Network',2:'Data Link',1:'Physical'};
+const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])),clone=o=>JSON.parse(JSON.stringify(o)),hx=n=>n.toString(16).padStart(2,'0');
+const i2n=s=>s.split('.').reduce((a,b)=>a*256+ +b,0),n2i=n=>[24,16,8,0].map(k=>n>>>k&255).join('.'),okIp=s=>/^(\d{1,3}\.){3}\d{1,3}$/.test(s)&&s.split('.').every(x=>+x<256);
+const okMask=s=>{if(!okIp(s))return false;const v=(~i2n(s))>>>0;return(v&(v+1))===0},net=(ip,m)=>(i2n(ip)&i2n(m))>>>0,plen=m=>i2n(m).toString(2).replace(/0/g,'').length;
+let S,H=[],U={sel:null,ev:null,mode:'sel',a:null,tab:'dev',spd:1,play:0,err:'',sc:'A',f:{}};const svg=$('#svg'),dev=id=>S.devs.find(d=>d.id==id),lk=id=>S.links.find(l=>l.id==id),hosts=()=>S.devs.filter(d=>d.type=='pc');
+const EXP={SEND:['Your app makes a message. Each layer wraps it in a new envelope: ports, then IP addresses, then MAC addresses.','Encapsulation: application data → L4 segment/datagram → IPv4 packet → Ethernet frame → bits.','Encapsulation = adding a header at each layer as data moves down the stack.'],
+'ARP-REQ':['The PC knows the IP but not the hardware address, so it shouts to everyone: “who owns this IP?”','ARP request: broadcast frame (dst ff:ff:ff:ff:ff:ff, EtherType 0x0806) resolving next-hop IPv4 to MAC.','ARP resolves an IPv4 address to a MAC address inside a LAN.'],
+'ARP-REP':['The owner answers directly: “that IP is me, here is my MAC.” The asker remembers it.','ARP reply: unicast frame carrying the sender MAC; requester caches it in its ARP table.','An ARP reply supplies the MAC for an IP; the result is cached.'],
+SWITCH:['The switch remembers which port each MAC lives on, then sends the frame only where needed. If it does not know the destination, it shouts out every other port.','Learning bridge: learn source MAC→port; look up destination; forward, filter, or flood (broadcast / unknown unicast).','A switch forwards frames at Layer 2 using a dynamically learned MAC address table.'],
+ROUTE:['The router reads the destination IP, picks the best matching route, and hands the packet to the next hop in a brand-new Ethernet frame.','Longest-prefix match, TTL decrement, next-hop ARP, new L2 header. IP src/dst unchanged (no NAT).','A router forwards packets at Layer 3 using its routing table; MACs change per hop, IPs do not.'],
+DELIVER:['The message arrived. The receiver unwraps each layer until the app gets the data.','Decapsulation: Ethernet → IPv4 → L4 → application.','Decapsulation removes headers layer by layer at the receiver.'],
+TCP:['TCP shakes hands first (SYN, SYN-ACK, ACK) so both sides agree before data flows.','TCP three-way handshake with sequence/acknowledgement numbers. Retransmission and window changes are not simulated.','TCP is connection-oriented and reliable; UDP is connectionless and best-effort.'],
+DROP:['The packet died here. The message says why.','Drop causes: no route, TTL expired, link down, ARP timeout.','Packets are dropped on TTL expiry, missing route, or an unreachable next hop.'],
+DISCARD:['This device saw a copy meant for someone else, so it ignores it.','A NIC accepts only frames to its own MAC or broadcast; hosts never forward IP packets.','A NIC filters by destination MAC; hosts do not route.']};
+function mk(t,x,y){const n=S.nid++,c=S.devs.filter(d=>d.type==t).length+1,d={id:'d'+n,type:t,name:{pc:'PC',sw:'SW',rt:'R'}[t]+c,x,y,gw:'',ifs:[],routes:[],mt:{},arp:{},pend:{},tcps:'',tcpc:''};
+for(let i=0;i<{pc:1,sw:4,rt:3}[t];i++)d.ifs.push({n:t=='sw'?'Fa0/'+(i+1):'eth'+i,mac:'02:00:00:00:'+hx(n)+':'+hx(i+1),ip:'',mask:'255.255.255.0',link:null});S.devs.push(d);return d}
+function conn(a,b){if(a==b)return'Cannot link a device to itself';const x=a.ifs.findIndex(c=>!c.link),y=b.ifs.findIndex(c=>!c.link);if(x<0||y<0)return'No free port on '+(x<0?a.name:b.name);
+const l={id:'l'+S.nid++,a:[a.id,x],b:[b.id,y],up:true};S.links.push(l);a.ifs[x].link=l.id;b.ifs[y].link=l.id;return''}
+function rmLink(l){[l.a,l.b].forEach(e=>{const d=dev(e[0]);if(d)d.ifs[e[1]].link=null});S.links=S.links.filter(x=>x!=l)}
+function rmDev(d){S.links.filter(l=>l.a[0]==d.id||l.b[0]==d.id).forEach(rmLink);S.devs=S.devs.filter(x=>x!=d);if(U.sel==d.id)U.sel=null}
+function add(t){mk(t,80+Math.random()*560|0,50+Math.random()*240|0);draw()}
+function load(k){S={devs:[],links:[],q:[],ev:[],t:0,pid:0,nid:1};H=[];U.fr=null;U.ev=null;U.sel=null;U.sc=k;U.a=null;U.err='';$('#sc').value=k;
+const D=(t,n,x,y,c={})=>{const d=mk(t,x,y);d.name=n;(c.ips||[]).forEach((a,i)=>{d.ifs[i].ip=a[0];d.ifs[i].mask=a[1]||'255.255.255.0'});d.gw=c.gw||'';d.routes=c.rt||[];return d},L=conn;
+if(k=='A'){const s=D('sw','SW1',360,200);[0,1,2].forEach(i=>L(D('pc','PC'+(i+1),120+i*240,70,{ips:[['192.168.1.'+(10+i)]]}),s))}
+if(k=='D'){const p1=D('pc','PC1',60,170,{ips:[['10.0.1.10']],gw:'10.0.1.1'}),s1=D('sw','SW1',190,170),r=D('rt','R1',360,170,{ips:[['10.0.1.1'],['10.0.2.1']]}),s2=D('sw','SW2',530,170),p2=D('pc','PC2',660,170,{ips:[['10.0.2.10']],gw:'10.0.2.1'});L(p1,s1);L(s1,r);L(r,s2);L(s2,p2)}
+if(k=='E'){const p1=D('pc','PC1',45,170,{ips:[['10.0.1.10']],gw:'10.0.1.1'}),s1=D('sw','SW1',150,170),r1=D('rt','R1',275,170,{ips:[['10.0.1.1'],['10.0.12.1','255.255.255.252']],rt:[{net:'10.0.2.0',mask:'255.255.255.0',nh:'10.0.12.2'}]}),r2=D('rt','R2',440,170,{ips:[['10.0.12.2','255.255.255.252'],['10.0.2.1']],rt:[{net:'10.0.1.0',mask:'255.255.255.0',nh:'10.0.12.1'}]}),s2=D('sw','SW2',565,170),p2=D('pc','PC2',670,170,{ips:[['10.0.2.10']],gw:'10.0.2.1'});L(p1,s1);L(s1,r1);L(r1,r2);L(r2,s2);L(s2,p2)}
+const h=hosts();U.f={s:h[0]&&h[0].id,dst:h[1]?h[1].ifs[0].ip:'',pr:'ICMP',ttl:64,data:'Hello'}}
+/* ---------- simulation engine ---------- */
+function ev(d,layer,kind,txt,f){S.ev.push({n:S.ev.length+1,t:S.t,d:d.name,layer,kind,txt,f:f?clone(f):null})}
+function tx(d,i,f){const c=d.ifs[i],l=lk(c.link);if(!l)return ev(d,1,'DROP','✖ '+c.n+' has no cable; frame lost',f);if(!l.up)return ev(d,1,'DROP','✖ Link on '+c.n+' is down; frame lost',f);
+const e=l.a[0]==d.id&&l.a[1]==i?l.b:l.a;S.q.push({d:e[0],i:e[1],f:clone(f),from:d.id})}
+function rtab(d){const r=[],oi=ip=>d.ifs.findIndex(c=>c.ip&&okMask(c.mask)&&net(c.ip,c.mask)==net(ip,c.mask));
+d.ifs.forEach((c,i)=>{if(c.ip&&okMask(c.mask))r.push({net:n2i(net(c.ip,c.mask)),mask:c.mask,nh:'',oi:i,ty:'C'})});
+if(d.type=='pc'&&d.gw)r.push({net:'0.0.0.0',mask:'0.0.0.0',nh:d.gw,oi:oi(d.gw),ty:'S'});
+if(d.type=='rt')d.routes.forEach(x=>r.push({net:x.net,mask:x.mask,nh:x.nh,oi:oi(x.nh),ty:'S'}));return r}
+function lpm(d,ip){let b=null;for(const r of rtab(d)){if(r.oi<0||net(ip,r.mask)!=i2n(r.net))continue;if(!b||plen(r.mask)>plen(b.mask))b=r}return b}
+function out(d,oi,nh,p){const c=d.ifs[oi],m=d.arp[nh];if(m)return tx(d,oi,{pid:p.pid,sm:c.mac,dm:m,et:'IPv4',ip:p.ip,l4:p.l4,data:p.data});
+const first=!(d.pend[nh]&&d.pend[nh].length);(d.pend[nh]=d.pend[nh]||[]).push({oi,p});
+if(first){const f={pid:++S.pid,sm:c.mac,dm:BC,et:'ARP',arp:{op:'req',sip:c.ip,smac:c.mac,tip:nh,tmac:'00:00:00:00:00:00'}};ev(d,2,'ARP-REQ','No ARP entry for next hop '+nh+'. Broadcasting “Who has '+nh+'?” The IP packet waits in a queue.',f);tx(d,oi,f)}}
+function P(d,dst,proto,l4,data=''){const r=lpm(d,dst);return{pid:++S.pid,ip:{src:r?d.ifs[r.oi].ip:'',dst,ttl:64,proto,len:20+(proto==6?20:8)+data.length},l4,data}}
+function sendIp(d,p){const r=lpm(d,p.ip.dst);if(!r)return ev(d,3,'DROP','✖ '+d.name+' has no route to '+p.ip.dst+(d.type=='pc'&&!d.gw?' (no default gateway)':'')+'. Packet not sent.',p);out(d,r.oi,r.nh||p.ip.dst,p)}
+function send(sid,dst,proto,ttl,data){const d=dev(sid);U.err='';if(!d)return U.err='Pick a source PC';if(!okIp(dst))return U.err='Invalid destination IP';if(!(ttl>=1&&ttl<=255))return U.err='TTL must be 1–255';
+if(!d.ifs[0].ip)return U.err=d.name+' has no IP address';let l4,pr,sp=49152+S.pid;
+if(proto=='ICMP'){pr=1;l4={k:'ICMP',type:'echo',id:S.pid+1};data=''}else if(proto=='UDP'){pr=17;l4={k:'UDP',sport:sp,dport:5000,length:8+data.length,checksum:'0x0000 (simplified)'}}
+else{pr=6;l4={k:'TCP',sport:sp,dport:80,seq:1000,ack:0,flags:'SYN',win:4096};d.tcpc=data;d.tcps='SYN-SENT';data=''}
+const p=P(d,dst,pr,l4,data);p.ip.ttl=ttl;ev(d,7,'SEND',d.name+' app sends '+proto+' to '+dst+'. Encapsulating: data → '+(proto=='ICMP'?'ICMP message':proto+(proto=='TCP'?' segment (SYN)':' datagram'))+' → IPv4 packet → Ethernet frame → bits.',p);sendIp(d,p)}
+function swRx(d,i,f){const c=d.ifs[i],o=d.mt[f.sm];d.mt[f.sm]={p:i,t:S.t};
+const m=!o?'Learned '+f.sm+' on '+c.n+'. ':o.p!=i?'MOVED '+f.sm+' from '+d.ifs[o.p].n+' to '+c.n+'. ':'Refreshed '+f.sm+'. ',e=d.mt[f.dm],fl=()=>d.ifs.forEach((x,j)=>{if(j!=i&&x.link&&lk(x.link).up)tx(d,j,f)});
+if(f.dm==BC){ev(d,2,'SWITCH',m+'Destination is broadcast → FLOOD out all other ports.',f);fl()}
+else if(!e){ev(d,2,'SWITCH',m+'Destination '+f.dm+' is unknown → FLOOD (unknown unicast).',f);fl()}
+else if(e.p==i)ev(d,2,'SWITCH',m+'Destination is on the same port → FILTER (not forwarded).',f);
+else{ev(d,2,'SWITCH',m+'Destination known on '+d.ifs[e.p].n+' → FORWARD only there.',f);tx(d,e.p,f)}}
+function arpRx(d,i,f){const a=f.arp,c=d.ifs[i];
+if(a.op=='req'){if(a.tip!=c.ip)return ev(d,2,'DISCARD','ARP request is for '+a.tip+', not me ('+(c.ip||'no IP')+'). Ignored.',f);d.arp[a.sip]=a.smac;
+const r={pid:++S.pid,sm:c.mac,dm:a.smac,et:'ARP',arp:{op:'rep',sip:c.ip,smac:c.mac,tip:a.sip,tmac:a.smac}};ev(d,2,'ARP-REP','That is my IP! Cached '+a.sip+' → '+a.smac+' and replying (unicast) with my MAC.',r);tx(d,i,r)}
+else{d.arp[a.sip]=a.smac;ev(d,2,'ARP-REP','ARP reply: '+a.sip+' is at '+a.smac+'. Cached; sending the waiting packet.',f);(d.pend[a.sip]||[]).forEach(q=>out(d,q.oi,a.sip,q.p));delete d.pend[a.sip]}}
+function local(d,i,f){const ip=f.ip,l=f.l4,F=l.flags,re=(pr,l4,data)=>sendIp(d,P(d,ip.src,pr,l4,data)),tc=fl=>({k:'TCP',sport:l.dport,dport:l.sport,seq:l.ack,ack:l.seq+1,flags:fl,win:4096});
+if(l.k=='ICMP'){if(l.type=='echo'){ev(d,3,'DELIVER','Echo request for me. Replying.',f);re(1,{k:'ICMP',type:'echo-reply',id:l.id})}else ev(d,3,'DELIVER','✔ Echo reply from '+ip.src+': ping succeeded! (ICMP sits on IP, no ports.)',f)}
+else if(l.k=='UDP')ev(d,4,'DELIVER','✔ UDP datagram delivered to port '+l.dport+': “'+f.data+'”. No handshake, no ACK, no retransmission.',f);
+else if(F=='SYN'){d.tcps='SYN-RCVD';ev(d,4,'TCP','SYN received (seq='+l.seq+'). Replying SYN-ACK: I accept; my seq=5000.',f);re(6,{k:'TCP',sport:l.dport,dport:l.sport,seq:5000,ack:l.seq+1,flags:'SYN-ACK',win:4096})}
+else if(F=='SYN-ACK'){d.tcps='ESTABLISHED';ev(d,4,'TCP','SYN-ACK received. Sending ACK: connection ESTABLISHED (3-way handshake done).',f);re(6,tc('ACK'));if(d.tcpc)re(6,tc('PSH-ACK'),d.tcpc)}
+else if(F=='ACK'){d.tcps='ESTABLISHED';ev(d,4,'TCP','ACK received (handshake complete, or data acknowledged).',f)}
+else if(F=='PSH-ACK'){ev(d,4,'DELIVER','✔ TCP data delivered to app: “'+f.data+'”. Acknowledging it.',f);re(6,{k:'TCP',sport:l.dport,dport:l.sport,seq:l.ack,ack:l.seq+f.data.length,flags:'ACK',win:4096})}}
+function ipRx(d,i,f){const ip=f.ip;if(d.ifs.some(c=>c.ip==ip.dst))return local(d,i,f);
+if(d.type!='rt')return ev(d,3,'DISCARD','Packet addressed to '+ip.dst+', not me. Hosts do not forward packets.',f);
+const p={pid:f.pid,ip:{...ip,ttl:ip.ttl-1},l4:f.l4,data:f.data};
+if(p.ip.ttl<=0)return ev(d,3,'DROP','✖ TTL expired at '+d.name+' (was '+ip.ttl+', now 0). Real routers send ICMP Time Exceeded; not simulated.',f);
+const r=lpm(d,ip.dst);if(!r)return ev(d,3,'DROP','✖ No route to '+ip.dst+' in the routing table → packet dropped (real routers send ICMP unreachable).',f);
+ev(d,3,'ROUTE','Dst '+ip.dst+' is not mine → forward. Longest-prefix match: '+r.net+'/'+plen(r.mask)+' ('+(r.ty=='C'?'connected':'static')+') via '+(r.nh||'direct')+' out '+d.ifs[r.oi].n+'. TTL '+ip.ttl+'→'+p.ip.ttl+'. New Ethernet header built; IP addresses unchanged.',f);out(d,r.oi,r.nh||ip.dst,p)}
+function rx(d,i,f){if(d.type=='sw')return swRx(d,i,f);const c=d.ifs[i];
+if(f.dm!=c.mac&&f.dm!=BC)return ev(d,2,'DISCARD','Frame for '+f.dm+' is not for this NIC ('+c.mac+'). Ignored.',f);f.et=='ARP'?arpRx(d,i,f):ipRx(d,i,f)}
+function step(){const a=S.q.shift();if(!a){let any=0;S.devs.forEach(d=>{for(const nh in d.pend){any=1;S.t++;ev(d,2,'DROP','✖ ARP timeout: nobody answered for '+nh+'. '+d.pend[nh].length+' queued packet(s) dropped → destination host unreachable.',null)}d.pend={}});return any}
+S.t++;rx(dev(a.d),a.i,a.f);return 1}
+/* ---------- UI actions ---------- */
+function anim(a){const f=dev(a.from),t=dev(a.d),g=svg.querySelector('.fa');if(!f||!t||!g)return;const q=Math.hypot(f.x-t.x,f.y-t.y)||1,k=Math.min(98,q*.62),rx=t.x+(f.x-t.x)/q*k,ry=t.y+(f.y-t.y)/q*k;
+g.animate([{transform:`translate(${f.x-rx}px,${f.y-ry}px)`,opacity:.15},{transform:'translate(0,0)',opacity:1}],{duration:800/U.spd,easing:'ease-in-out'})}
+function go(){H.push(JSON.stringify(S));const a=S.q[0];if(!step()){H.pop();return 0}U.fr=a?{from:a.from,to:a.d,f:a.f}:null;U.ev=S.ev.length-1;draw();if(a)anim(a);return 1}
+function doStep(){U.play=0;if(!go()){U.err='Nothing left to process: the network is idle.';draw()}}
+function back(){if(!H.length)return;U.play=0;U.fr=null;S=JSON.parse(H.pop());U.ev=S.ev.length?S.ev.length-1:null;draw()}
+function play(){if(U.play){U.play=0;return draw()}U.play=1;draw();(function t(){if(!U.play)return;if(!go()){U.play=0;draw();return}setTimeout(t,900/U.spd)})()}
+function doSend(){U.fr=null;const f=U.f;send(f.s||(hosts()[0]||{}).id,f.dst.trim(),f.pr,f.ttl,f.data);U.ev=S.ev.length-1;draw()}
+function setIf(i,k,v){const c=dev(U.sel).ifs[i];v=v.trim();U.err='';if(k=='ip'&&v&&!okIp(v))U.err='Invalid IPv4 address: '+v;else if(k=='mask'&&!okMask(v))U.err='Invalid subnet mask: '+v+' (must be contiguous ones)';else c[k]=v;draw()}
+function setGw(v){v=v.trim();U.err=v&&!okIp(v)?'Invalid gateway: '+v:'';if(!U.err)dev(U.sel).gw=v;draw()}
+function addRt(){const d=dev(U.sel),n=$('#rn').value.trim(),m=$('#rm').value.trim(),h=$('#rh').value.trim();U.err='';
+if(!okIp(n)||!okMask(m)||!okIp(h))U.err='Route needs a valid network, mask and next-hop IP';else if(!d.ifs.some(c=>c.ip&&okMask(c.mask)&&net(c.ip,c.mask)==net(h,c.mask)))U.err='Next hop '+h+' is not on a directly connected subnet';else d.routes.push({net:n2i(net(n,m)),mask:m,nh:h});draw()}
+/* ---------- rendering ---------- */
+/* ---------- NetworkAcademy-style topology view ---------- */
+const mlab=m=>{if(m==BC)return'BCAST';for(const d of S.devs)for(let i=0;i<d.ifs.length;i++)if(d.ifs[i].mac==m)return d.name+(d.type=='rt'?'.'+i:'');return String(m).slice(-5)};
+const tt=(x,y,s,c,fs,b,a)=>`<text x="${x}" y="${y}" style="fill:${c||'#fff'};font-size:${fs||11}px;${b?'font-weight:700;':''}text-anchor:${a||'middle'};font-family:Arial,Helvetica,sans-serif;pointer-events:none">${esc(s)}</text>`;
+function wrapTx(s,n){const L=[];let c='';String(s).split(' ').forEach(x=>{if((c+' '+x).trim().length>n){L.push(c);c=x}else c=(c+' '+x).trim()});if(c)L.push(c);return L}
+function fgrp(f,s){const tp=f.arp?'ARP '+(f.arp.op=='req'?'request':'reply'):f.ip?'IPv4 · TTL '+f.ip.ttl:(f.et||''),bx=(x,w,l,c)=>`<rect x="${x}" y="-9" width="${w}" height="18" style="fill:${c};stroke:#555"/>`+tt(x+w/2,4,l,'#000',10.5,1);
+ return `<g transform="scale(${s})">`+bx(-56,34,'ETH','#eee')+bx(-19,38,mlab(f.sm),'#ffe599')+bx(22,38,mlab(f.dm),'#eee')+tt(0,-13,'sMAC','#999',10)+tt(41,-13,'dMAC','#999',10)+tt(2,25,tp,'#bbb',10)+'</g>'}
+function devSvg(d){const sel=U.sel==d.id||U.a==d.id,ip=d.type!='sw'?tt(0,46,d.ifs.map(c=>c.ip).filter(Boolean).join(' '),'#9ab',10):'';let b='';
+ if(d.type=='pc')b=`<rect x="-28" y="-30" width="56" height="40" rx="3" style="fill:#1a6fa5;stroke:#fff;stroke-width:2"/><rect x="-4" y="10" width="8" height="6" style="fill:#fff"/><polygon points="-32,27 -24,16 24,16 32,27" style="fill:#000;stroke:#fff;stroke-width:2"/>`+tt(0,-6,d.name,'#fff',15,1);
+ else if(d.type=='sw')b=`<polygon points="-45,-8 -24,-30 48,-30 30,-8" style="fill:#2b7fb0;stroke:#fff;stroke-width:1.5"/><polygon points="30,-8 48,-30 48,6 30,22" style="fill:#144a70;stroke:#fff;stroke-width:1.5"/><rect x="-45" y="-8" width="75" height="30" style="fill:#1a5a85;stroke:#fff;stroke-width:1.5"/><polygon points="-18,-22 6,-22 6,-26 16,-19 6,-12 6,-16 -18,-16" style="fill:#fff"/>`+tt(-7,13,d.name,'#fff',15,1);
+ else b=`<path d="M-34,-12 V16 A34,11 0 0 0 34,16 V-12" style="fill:#1a5a85;stroke:#fff;stroke-width:1.5"/><ellipse cx="0" cy="-12" rx="34" ry="11" style="fill:#2b7fb0;stroke:#fff;stroke-width:1.5"/><path d="M-18,-12 H14 M8,-17 L16,-12 L8,-7 M18,-12 H-14 M-8,-17 L-16,-12 L-8,-7" transform="translate(0,0)" style="fill:none;stroke:#fff;stroke-width:1.5;display:none"/><polygon points="-20,-14 6,-14 6,-18 15,-12 6,-6 6,-10 -20,-10" style="fill:#fff"/>`+tt(0,11,d.name,'#fff',15,1);
+ return `<g data-d="${d.id}" transform="translate(${d.x},${d.y})" style="cursor:pointer"><rect x="-44" y="-36" width="88" height="86" rx="10" style="fill:transparent;${sel?'stroke:#fbb900;stroke-width:2;stroke-dasharray:5 3':'stroke:none'}"/>${b}${ip}</g>`}
+function calloutSvg(e,d){let L=wrapTx(e.txt,36);if(L.length>6){L=L.slice(0,6);L[5]=L[5].slice(0,32)+'…'}
+ const lh=15,w=270,h=(L.length+1)*lh+14,top=d.y>=130,x=top?Math.max(8,Math.min(720-w-8,d.x-w/2)):(d.x<360?720-w-8:8),y=top?8:340-h-8,bx=Math.max(x+12,Math.min(x+w-40,d.x-14)),by=top?y+h-2:y+2,ty=top?d.y-34:d.y+34;
+ return `<g style="pointer-events:none"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="11" style="fill:#f9d77e"/><polygon points="${bx},${by} ${bx+28},${by} ${d.x},${ty}" style="fill:#f9d77e"/>`+tt(x+12,y+17,e.d+' · '+e.kind,'#111',12.5,1,'start')+L.map((s,i)=>tt(x+12,y+17+(i+1)*lh,s,'#111',12,0,'start')).join('')+'</g>'}
+function tblSvg(d,e,R){const s=.6,isw=d.type=='sw',X=d.x-103.5*s,Y=d.y+54,W=isw?[72,63,72]:[80,67,60],B=[0,W[0],W[0]+W[1],207],fs=isw?12:10.5,c=(x,y,t,b,f)=>tt(x,y,t,'#000',f||fs,b),ln=(a,b,p,q)=>`<line x1="${a}" y1="${p}" x2="${b}" y2="${q}" style="stroke:#000"/>`;
+ let rows,hi=-1;
+ if(isw){const en=Object.entries(d.mt).slice(-5);rows=en.map(([m,v])=>[mlab(m),d.ifs[v.p].n,Math.max(0,300-(S.t-v.t)*2)]);
+  if(e&&e.d==d.name&&e.kind=='SWITCH'&&e.f)hi=en.findIndex(x=>x[0]==e.f.sm)}
+ else{const rt=rtab(d);rows=rt.slice(0,5).map(r=>[r.net+'/'+plen(r.mask),r.nh||'direct',r.oi>=0?d.ifs[r.oi].n:'—']);
+  if(e&&e.d==d.name&&e.kind=='ROUTE'&&e.f&&e.f.ip){const m=lpm(d,e.f.ip.dst);if(m)hi=rt.slice(0,5).findIndex(x=>x.net==m.net&&x.mask==m.mask)}}
+ let h=`<rect width="207" height="129" style="fill:#fff;stroke:#000;stroke-width:1.5"/>`;
+ if(hi>=0)h+=`<rect y="${44+hi*17}" width="207" height="17" style="fill:#ffe599"/>`;
+ for(let i=0;i<=5;i++)h+=ln(0,207,44+i*17,44+i*17);h+=ln(0,207,24,24)+ln(B[1],B[1],24,129)+ln(B[2],B[2],24,129);
+ const mid=i=>(B[i]+B[i+1])/2;
+ h+=c(103,16,d.name+(isw?' MAC Address Table':' Routing Table'),1,12)+(isw?['MAC','Port','Age [sec]']:['Network','Via','Port']).map((t,i)=>c(mid(i),38,t,1,11)).join('');
+ rows.forEach((r,i)=>r.forEach((t,j)=>h+=c(mid(j),44+i*17+12.5,t)));
+ let a='';if(isw&&hi>=0&&R){const ry=Y+(44+hi*17+8.5)*s,X1=X+207*s,st='fill:none;stroke:#fbb900;stroke-width:2.5',hd='fill:#fbb900';
+  if(R.x<X-6)a=`<path d="M${R.x},${R.y+8} V${ry} H${X-12}" style="${st}"/><polygon points="${X-12},${ry-5} ${X-2},${ry} ${X-12},${ry+5}" style="${hd}"/>`;
+  else if(R.x>X1+6)a=`<path d="M${R.x},${R.y+8} V${ry} H${X1+12}" style="${st}"/><polygon points="${X1+12},${ry-5} ${X1+2},${ry} ${X1+12},${ry+5}" style="${hd}"/>`;
+  else a=`<path d="M${R.x},${R.y+8} V${Y-12}" style="${st}"/><polygon points="${R.x-5},${Y-12} ${R.x},${Y-2} ${R.x+5},${Y-12}" style="${hd}"/>`}
+ return `<g transform="translate(${X},${Y}) scale(${s})" style="pointer-events:none">${h}</g>`+a}
+function drawTopo(){let R=null;if(U.fr){const A=dev(U.fr.from),B=dev(U.fr.to);if(A&&B){const q=Math.hypot(A.x-B.x,A.y-B.y)||1,k=Math.min(98,q*.62);R={x:B.x+(A.x-B.x)/q*k,y:B.y+(A.y-B.y)/q*k,A,B}}}
+ const e=S.ev[U.ev],ed=e&&S.devs.find(x=>x.name==e.d);let sw=ed&&ed.type=='sw'?ed:(dev(U.sel)&&dev(U.sel).type=='sw'?dev(U.sel):null);
+ if(!sw)for(let k=S.ev.length-1;k>=0&&!sw;k--)if(S.ev[k].kind=='SWITCH')sw=S.devs.find(x=>x.name==S.ev[k].d);if(!sw)sw=S.devs.find(x=>x.type=='sw');
+ let h=S.links.map(l=>{const a=dev(l.a[0]),b=dev(l.b[0]),p=`x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}"`;return `<line data-l="${l.id}" ${p} style="stroke:transparent;stroke-width:14;cursor:pointer"/><line ${p} style="pointer-events:none;stroke:${l.up?'#bbb':'#f87171'};stroke-width:1.8;${l.up?'':'stroke-dasharray:6 5'}"/>`}).join('');
+ let pp='';S.devs.forEach(d=>{if(d.type=='pc')return;d.ifs.forEach(c=>{const l=lk(c.link);if(!l)return;const o=dev(l.a[0]==d.id?l.b[0]:l.a[0]),q=Math.hypot(o.x-d.x,o.y-d.y)||1,x=d.x+(o.x-d.x)/q*52,y=d.y+(o.y-d.y)/q*52;
+  pp+=`<rect x="${x-20}" y="${y-8}" width="40" height="16" rx="2" style="fill:#000;fill-opacity:.6;stroke:#777;pointer-events:none"/>`+tt(x,y+4,c.n,'#aaa',10,1)})});
+ h+=S.devs.map(devSvg).join('')+pp;
+ if(R){const f=U.fr.f;h+=`<g class="fa"><g transform="translate(${R.x},${R.y})">${fgrp(f,.7)}</g></g>`}
+ S.devs.forEach(d=>{if(d.type!='pc')h+=tblSvg(d,e,R)});if(e&&ed)h+=calloutSvg(e,ed);svg.innerHTML=h}
+
+const tb=(h,r)=>`<table><tr>${h.map(x=>`<th>${x}`).join('')}${r.map(x=>`<tr>${x.map(y=>`<td>${y}`).join('')}`).join('')}</table>`;
+const peer=(d,i)=>{const l=lk(d.ifs[i].link);if(!l)return'<span class="mu">no cable</span>';const e=l.a[0]==d.id&&l.a[1]==i?l.b:l.a,o=dev(e[0]);return esc(o.name)+'/'+o.ifs[e[1]].n+(l.up?'':' <b class="bad">DOWN</b>')};
+function devHtml(){const d=dev(U.sel);if(!d)return'<p class="mu">Click a device to inspect or configure it.</p>';let h=`<h3>${IC[d.type]} <input value="${esc(d.name)}" style="width:90px" onchange="dev(U.sel).name=this.value;draw()"></h3>`;
+h+=tb(['Port','MAC','IP / mask','Cable to'],d.ifs.map((c,i)=>[c.n,`<small>${c.mac}</small>`,d.type=='sw'?'—':`<input style="width:92px" value="${esc(c.ip)}" onchange="setIf(${i},'ip',this.value)"><input style="width:92px" value="${esc(c.mask)}" onchange="setIf(${i},'mask',this.value)">`,peer(d,i)]));
+if(d.type=='pc')h+=`<p>Default gateway <input style="width:100px" value="${esc(d.gw)}" onchange="setGw(this.value)"> <span class="mu">TCP state: ${d.tcps||'none'}</span></p>`;
+if(d.type=='sw')h+=`<h3>MAC address table <button onclick="dev(U.sel).mt={};draw()">Clear</button></h3>`+tb(['VLAN','MAC','Port','Type','Age (steps)'],Object.entries(d.mt).map(([m,e])=>['1 (no VLANs)',m,d.ifs[e.p].n,'dynamic',S.t-e.t]));
+else{h+=`<h3>Routing table</h3>`+tb(['Network','Type','Next hop / port'],rtab(d).map(r=>[r.net+'/'+plen(r.mask),r.ty=='C'?'connected':'static'+(r.net=='0.0.0.0'?' (default)':''),(r.nh||'—')+' '+(r.oi<0?'<b class="bad">⚠ next hop not on a connected subnet</b>':d.ifs[r.oi].n)]));
+if(d.type=='rt')h+=tb(['Static route','',''],d.routes.map((r,k)=>[r.net+'/'+plen(r.mask),'via '+r.nh,`<button onclick="dev(U.sel).routes.splice(${k},1);draw()">Remove</button>`]))+`<div class="row"><input id="rn" placeholder="network" style="width:84px"><input id="rm" placeholder="mask" style="width:84px"><input id="rh" placeholder="next hop" style="width:84px"><button onclick="addRt()">Add</button></div>`;
+h+=`<h3>ARP cache <button onclick="dev(U.sel).arp={};draw()">Clear</button></h3>`+tb(['IP','MAC'],Object.entries(d.arp))}
+const lg=S.ev.filter(e=>e.d==d.name).slice(-5).reverse();return h+'<h3>Recent decisions</h3>'+(lg.map(e=>`<div>#${e.n} <b>${e.kind}</b> ${esc(e.txt)}</div>`).join('')||'<span class="mu">none yet</span>')}
+function rows(f){const r=[],a=(L,k,v)=>r.push([L,k,v]);
+if(f.sm){a('L2','src MAC',f.sm);a('L2','dst MAC',f.dm);a('L2','EtherType',f.et=='ARP'?'0x0806 (ARP)':'0x0800 (IPv4)')}
+if(f.arp)for(const k in f.arp)a('L2/3','ARP '+k,f.arp[k]);
+if(f.ip){for(const k in f.ip)a('L3','IP '+k,f.ip[k]);a('L3','IP header len','20 bytes (no options)')}
+if(f.l4)for(const k in f.l4)if(k!='k')a('L4',f.l4.k+' '+k,f.l4[k]);if(f.data)a('L7','data',f.data);
+if(f.sm)a('L2','FCS (educational hash)','0x'+[...JSON.stringify([f.sm,f.dm,f.ip,f.l4,f.arp,f.data])].reduce((h,c)=>(h*31+c.charCodeAt(0))>>>0,7).toString(16));return r}
+function pktHtml(){const e=S.ev[U.ev];if(!e)return'<p class="mu">Step the simulation, then pick an event in the timeline.</p>';let h=`<p><b>#${e.n} ${esc(e.d)}</b> · L${e.layer} · ${e.kind}</p><p>${esc(e.txt)}</p>`;if(!e.f)return h;
+let pv=null;for(let k=U.ev-1;k>=0;k--){const o=S.ev[k];if(o.f&&o.f.pid==e.f.pid){pv=o;break}}
+const Q=pv?Object.fromEntries(rows(pv.f).map(r=>[r[0]+r[1],r[2]])):{};
+return h+'<table>'+rows(e.f).map(r=>{const q=Q[r[0]+r[1]],ch=pv&&q!==undefined&&q!=r[2];return`<tr${ch?' class="ch"':''}><td>${r[0]}<td>${esc(r[1])}<td>${esc(r[2])}${ch?' ◀ changed':''}`}).join('')+'</table>'+(pv?`<p class="mu">Compared with event #${pv.n} (same packet, previous hop): highlighted rows changed.</p>`:'<p class="mu">First sighting of this packet.</p>')}
+function learnHtml(){const e=S.ev[U.ev],map='<p class="mu">OSI L7–5 ⇒ TCP/IP Application · L4 ⇒ Transport · L3 ⇒ Internet · L2–1 ⇒ Link. OSI is a conceptual reference model; real stacks do not implement seven separate modules.</p>';if(!e)return'<p class="mu">Select an event for beginner / technical / exam explanations and the 7-layer view.</p>'+map;
+const x=EXP[e.kind]||EXP.DROP,d=S.devs.find(v=>v.name==e.d),top=d?{pc:7,sw:2,rt:3}[d.type]:7,f=e.f||{},
+det={7:f.data||'—',6:'No header. Encoding / compression / TLS live in app libraries (plain text here).',5:'No header in TCP/IP. Connection state: '+((d&&d.tcps)||'none'),4:f.l4?f.l4.k+(f.l4.sport?' '+f.l4.sport+'→'+f.l4.dport:''):'—',3:f.ip?f.ip.src+' → '+f.ip.dst+' TTL '+f.ip.ttl:'—',2:f.sm?f.sm+' → '+f.dm:'—',1:'Bits on the cable (animation is an abstraction, not electrical)'};
+return`<p><b>Beginner</b><br>${x[0]}</p><p><b>Technical</b><br>${x[1]}</p><p><b>Exam answer</b><br>${x[2]}</p><p class="mu">Layers this device handles are solid; others dimmed. Event layer highlighted.</p><table>`+[7,6,5,4,3,2,1].map(n=>`<tr class="${n==e.layer?'ch':''}" style="opacity:${n<=top?1:.4}"><td>L${n} ${LN[n]}<td>${esc(det[n])}`).join('')+'</table>'+map}
+const LAB={msg:'Hello',mss:8,cmp:1,enc:1,key:'K3Y',pr:'TCP',spd:100,st:1};
+const hs=b=>b.length>40?b.slice(0,40).map(hx).join(' ')+' … (+'+(b.length-40)+' more)':b.map(hx).join(' '),utf8=s=>[...new TextEncoder().encode(s)],u16=n=>[n>>8&255,n&255],u32=n=>[n>>>24,n>>>16&255,n>>>8&255,n&255];
+const rle=b=>{const o=[];for(let i=0;i<b.length;){let j=i;while(j<b.length&&b[j]==b[i]&&j-i<255)j++;o.push(j-i,b[i]);i=j}return o},unrle=b=>{const o=[];for(let i=0;i<b.length;i+=2)for(let k=0;k<b[i];k++)o.push(b[i+1]);return o};
+const xor=(b,k)=>{const K=utf8(k||'k');return b.map((x,i)=>x^K[i%K.length])},sum16=b=>{let s=0;for(let i=0;i<b.length;i+=2)s+=(b[i]<<8)+(b[i+1]||0);while(s>>16)s=(s&65535)+(s>>16);return ~s&65535};
+const crc=b=>{let c=-1;for(const x of b){c^=x;for(let k=0;k<8;k++)c=c&1?(c>>>1)^0xEDB88320:c>>>1}return ~c>>>0},mb=s=>s.split(':').map(x=>parseInt(x,16)||0),bits=b=>b.map(x=>x.toString(2).padStart(8,'0')).join(' '),h4=(n,w)=>'0x'+n.toString(16).padStart(w,'0');
+function labHtml(){const L=LAB,h=dev(U.f.s),src=h&&okIp(h.ifs[0].ip)?h.ifs[0].ip:'10.0.1.10',dst=okIp((U.f.dst||'').trim())?U.f.dst.trim():'10.0.2.10',smac=h?h.ifs[0].mac:'02:00:00:00:00:01';
+const r=h?lpm(h,dst):null,nh=r?(r.nh||dst):'',dmc=h&&nh&&h.arp[nh]?h.arp[nh]:null,dmac=dmc||'00:00:00:00:00:00',tcp=L.pr=='TCP',sp=49152,dp=tcp?80:5000,mss=Math.max(1,Math.min(1460,L.mss|0||8));
+const d0=utf8(L.msg||''),c=L.cmp?rle(d0):d0,e=L.enc?xor(c,L.key):c,sid=h4(sum16(utf8(src+dst+sp+dp)),4),ch=[];
+if(tcp)for(let i=0;i<e.length;i+=mss)ch.push(e.slice(i,i+mss));else ch.push(e);if(!ch.length)ch.push([]);
+const segs=ch.map((p,i)=>{const seq=1001+i*mss,last=i==ch.length-1;let hd=tcp?[...u16(sp),...u16(dp),...u32(seq),...u32(5001),0x50,last?0x18:0x10,...u16(4096),0,0,0,0]:[...u16(sp),...u16(dp),...u16(8+p.length),0,0];
+const cs=sum16([...hd,...p]);if(tcp){hd[16]=cs>>8;hd[17]=cs&255}else{hd[6]=cs>>8;hd[7]=cs&255}return{p,seq,fl:last?'PSH-ACK':'ACK',cs,b:[...hd,...p]}});
+const pk=segs.map((s,i)=>{const len=20+s.b.length,hd=[0x45,0,...u16(len),...u16(i+1),0x40,0,64,tcp?6:17,0,0,...src.split('.').map(Number),...dst.split('.').map(Number)],cs=sum16(hd);hd[10]=cs>>8;hd[11]=cs&255;return{id:i+1,len,cs,b:[...hd,...s.b]}});
+const fr=pk.map(p=>{const pad=Math.max(0,46-p.b.length),core=[...mb(dmac),...mb(smac),8,0,...p.b,...Array(pad).fill(0)],f=crc(core);return{pad,fcs:f,b:[...core,...u32(f)]}});
+let ok=1;const got=[];fr.forEach(f=>{const core=f.b.slice(0,-4),fb=f.b.slice(-4);if(crc(core)!=((fb[0]<<24|fb[1]<<16|fb[2]<<8|fb[3])>>>0))ok=0;const ip=core.slice(14),ipb=ip.slice(0,ip[2]<<8|ip[3]);if(sum16(ipb.slice(0,20))!==0)ok=0;const sg=ipb.slice(20);got.push({seq:tcp?(sg[4]<<24|sg[5]<<16|sg[6]<<8|sg[7])>>>0:0,d:sg.slice(tcp?20:8)})});
+got.sort((a,b)=>a.seq-b.seq);const rb=got.flatMap(g=>g.d),dc=L.enc?xor(rb,L.key):rb,du=L.cmp?unrle(dc):dc,txt=new TextDecoder().decode(new Uint8Array(du)),code=t=>`<code>${t}</code>`;
+const S2=[
+`<b>L7 Application</b>: the app creates the data “${esc(L.msg)}” (${[...L.msg].length} characters). Nothing is added yet; the app hands the data to the layer below. (On TCP port 80 this would normally be an HTTP request.)`,
+`<b>L6 Presentation</b> (data representation):<br>1. <b>Encoding</b>, text → bytes (UTF-8): ${code(hs(d0))} (${d0.length} B)<br>2. <b>Compression</b> ${L.cmp?'(toy run-length encoding as [count, byte] pairs; real systems use gzip/deflate): '+code(hs(c))+' ('+d0.length+' → '+c.length+' B)'+(c.length>=d0.length?' <i>no gain: too little repetition. Try “aaaaaaaaaaaa”.</i>':''):'is OFF'}<br>3. <b>Encryption</b> ${L.enc?'(toy XOR with key “'+esc(L.key)+'”): '+code(hs(e))+' <span class="bad">NOT secure.</span> Real TLS uses AES-GCM keys negotiated in a handshake with certificates; that is simplified away here.':'is OFF (data travels as readable plaintext)'}<br><span class="mu">Order matters: compress first, then encrypt (encrypted data looks random and cannot be compressed).</span>`,
+`<b>L5 Session</b>: ${tcp?'the TCP connection (SYN, SYN-ACK, ACK) is the session in practice':'UDP has no connection, so no session state'}. Illustrative session token ${code(sid)}, state OPEN → transfer → CLOSE. Real TCP/IP has no separate session header; the OSI session layer is usually folded into the application.`,
+`<b>L4 Transport</b>: ${tcp?'TCP splits the byte stream into <b>segments</b> of at most MSS = '+mss+' bytes (real Ethernet MSS is about 1460). Each segment gets a sequence number (first data byte = 1001, assuming the handshake used ISN 1000) so the receiver can reorder and acknowledge it.':'UDP does <b>not</b> split or number data: one datagram carries it all'+(e.length>1472?' (it is bigger than one Ethernet frame, so IP would have to fragment it)':'')+'.'} ${tb(['#','Ports','Seq','Flags','Window','Checksum (simplified)','Payload'],segs.map((s,i)=>[i+1,sp+' → '+dp,tcp?s.seq:'—',tcp?s.fl:'—',tcp?4096:'—',h4(s.cs,4),s.p.length+' B: '+hs(s.p)]))}`,
+`<b>L3 Network</b> (packetizing): each segment becomes the payload of an <b>IPv4 packet</b> with a 20-byte header. ${tb(['#','Src → Dst IP','TTL','Protocol','Total length','Header checksum'],pk.map(p=>[p.id,src+' → '+dst,64,tcp?'6 (TCP)':'17 (UDP)',p.len+' B',h4(p.cs,4)]))}`,
+`<b>L2 Data Link</b> (framing): each packet is wrapped in an <b>Ethernet frame</b>: 14-byte header (dst MAC, src MAC, EtherType) + payload (padded to 46 B minimum) + 4-byte FCS (a real CRC-32). The destination MAC is the <b>next hop</b> ${nh?'('+nh+')':''}, not the final host. ${dmc?'':'<span class="bad">Next-hop MAC is not in the ARP cache yet, so a real host would ARP first; 00:00:00:00:00:00 is a placeholder.</span>'} ${tb(['#','Dst MAC','Src MAC','EtherType','Payload','FCS (CRC-32)','Frame','Time on wire'],fr.map((f,i)=>[i+1,dmac,smac,'0x0800',pk[i].b.length+' B'+(f.pad?' +'+f.pad+' pad':''),h4(f.fcs,8),f.b.length+' B',((f.b.length+8)*8/L.spd).toFixed(2)+' µs @ '+L.spd+' Mbps']))}`,
+`<b>L1 Physical</b>: frames become bits (7 preamble bytes 10101010, start delimiter 10101011, then the frame) and are sent as electrical/optical/radio signals. Frame 1 of ${fr.length}:<div style="max-height:90px;overflow:auto;font-family:monospace;word-break:break-all;background:var(--bg);padding:4px;border-radius:6px">${bits([...Array(7).fill(170),171,...fr[0].b])}</div><span class="mu">Real signals are voltages/light pulses with line coding; this is an educational abstraction.</span>`,
+`<b>Receiver (decapsulation, computed from the real bytes above)</b><br>L1 bits → bytes ✔<br>L2 FCS CRC-32 + header check ${ok?'<span class="ok">✔ OK</span>':'<span class="bad">✖ FAILED</span>'}; strip Ethernet header<br>L3 header checksum ${ok?'<span class="ok">✔ OK</span>':'<span class="bad">✖</span>'}; destination ${dst} matches; strip IP header<br>L4 ${tcp?'put '+fr.length+' segment(s) back in sequence-number order and send an ACK':'deliver the datagram to port '+dp}; strip transport header<br>L6 ${L.enc?'decrypt → ':''}${L.cmp?'decompress → ':''}decode UTF-8<br>L7 app receives: <b>“${esc(txt)}”</b> ${txt==L.msg?'<span class="ok">✔ identical to what was sent</span>':'<span class="bad">✖ differs</span>'}`];
+const ctl=`<div class="row"><b>Message lab</b> <input value="${esc(L.msg)}" style="width:160px" onchange="LAB.msg=this.value;draw()"> <label>MSS <input type="number" min="1" max="1460" style="width:62px" value="${mss}" onchange="LAB.mss=+this.value;draw()"></label> <select onchange="LAB.pr=this.value;draw()">${['TCP','UDP'].map(p=>`<option ${L.pr==p?'selected':''}>${p}</option>`).join('')}</select> <label><input type="checkbox" ${L.cmp?'checked':''} onchange="LAB.cmp=this.checked?1:0;draw()"> compress</label> <label><input type="checkbox" ${L.enc?'checked':''} onchange="LAB.enc=this.checked?1:0;draw()"> encrypt</label> key <input value="${esc(L.key)}" style="width:60px" onchange="LAB.key=this.value;draw()"> link <select onchange="LAB.spd=+this.value;draw()">${[10,100,1000].map(s=>`<option value="${s}" ${L.spd==s?'selected':''}>${s} Mbps</option>`).join('')}</select></div><div class="row"><button onclick="LAB.st=Math.max(1,LAB.st-1);draw()">◀ Previous stage</button><button onclick="LAB.st=Math.min(8,LAB.st+1);draw()">Next stage ▶</button><button onclick="LAB.st=8;draw()">Show all</button><button onclick="LAB.st=1;draw()">Restart</button><button onclick="U.f.data=LAB.msg;U.f.pr=LAB.pr;doSend()">Send over the network ➜</button><span class="mu">stage ${L.st}/8 · uses the source PC and destination IP chosen above (${src} → ${dst})</span></div><div class="mu">The lab shows what each layer does to your message. The network simulator carries the original text as one packet; segments and bytes here are not injected into it.</div>`;
+return ctl+easyViz(L,tcp,{src,dst,smac,dmac,sp,dp,n:ch.length})+(L.det?S2.slice(0,L.st):[]).map((x,i)=>`<div style="border-left:3px solid ${i==L.st-1?'var(--ac)':'var(--bd)'};padding:2px 8px;margin:8px 0">${x}</div>`).join('')}
+function osiViz(L,tcp){const st=L.st,C={d:'#2563eb',s:'#7c3aed',t:'#0d9488',i:'#d97706',e:'#be123c',b:'#475569'},dl=(L.enc?'🔒 ':'')+(L.cmp?'zip ':'')+'Data',th=tcp?'TCP hdr':'UDP hdr',
+B={7:[['Data','d']],6:[[dl,'d']],5:[['Session*','s'],[dl,'d']],4:[[th,'t'],[dl,'d']],3:[['IP hdr','i'],[th,'t'],[dl,'d']],2:[['Eth hdr','e'],['IP','i'],[th,'t'],[dl,'d'],['FCS','e']],1:[['0101 1001 …','b']]},
+PDU={7:'Data',6:'Data',5:'Data',4:tcp?'Segment':'Datagram',3:'Packet',2:'Frame',1:'Bits'},
+TX={7:'creates the data',6:'encode · compress · encrypt',5:'opens / keeps the session',4:'adds ports + seq numbers · splits into segments',3:'adds IP source/destination, TTL',2:'adds MAC addresses + FCS',1:'turns the frame into signals'},
+RX={7:'app receives the data',6:'decrypt · decompress · decode',5:'session state',4:'removes transport header · reorders · ACK',3:'removes IP header',2:'checks FCS · removes Ethernet header',1:'signals → bits'},
+MD={3:'<b>Router</b>: reads IP dst, TTL−1, longest-prefix match, rewrites the MACs',2:'<b>Switch</b>: reads dst MAC, forwards using its MAC table',1:'<b>Cable / repeater</b>: relays bits'};
+const bk=a=>a.map(([t,c])=>`<span class="bk" style="background:${C[c]}${t=='Session*'?';opacity:.6;border:1px dashed #fff':''}">${t}</span>`).join('');
+let h=`<div class="mu">Click a layer to jump to that stage. Colored blocks are the headers wrapped around your data on the way down (encapsulation) and removed on the way up. *The session layer has no real header in TCP/IP.</div><div class="ov"><h4>📤 Sender</h4><h4>🔀🧭 Devices in between</h4><h4>📥 Receiver</h4>`;
+[7,6,5,4,3,2,1].forEach(n=>{const on=st>=8-n,cur=st==8-n;
+h+=`<div class="oc ${on?'on':''} ${cur?'cur':''}" onclick="LAB.st=${8-n};draw()"><b>L${n} ${LN[n]}</b> · ${PDU[n]}<br>${bk(B[n])}<small>${TX[n]}</small></div>`;
+h+=`<div class="oc ${on&&MD[n]?'on':''}" style="${MD[n]?'cursor:default':'opacity:.12;cursor:default'}">${MD[n]||'<small>not involved</small>'}</div>`;
+h+=`<div class="oc ${st==8?'on an':''}" style="animation-delay:${(n-1)*.25}s" onclick="LAB.st=8;draw()"><b>L${n} ${LN[n]}</b> · ${PDU[n]}<br>${bk(B[n])}<small>${RX[n]}</small></div>`});
+return h+'</div>'}
+function easyViz(L,tcp,x){const st=L.st,rx=st==8,l=8-st,C={7:'#2563eb',6:'#7c3aed',5:'#6b7280',4:'#0d9488',3:'#d97706',2:'#be123c',1:'#475569'},
+SH={7:'your message',6:'format · compress · lock',5:'conversation',4:'ports · pieces',3:'IP addresses',2:'MAC addresses',1:'bits on the wire'},
+EZ={7:'You write your message. Nothing is added yet.',6:'The message is turned into bytes'+(L.cmp?', squeezed smaller':'')+(L.enc?' and locked, so nobody on the way can read it':'')+'.',5:'The two computers agree to start a conversation (a “session”).',4:tcp?'The data is cut into '+x.n+' numbered piece(s). A port number says which app on the other computer gets it.':'The data goes as one piece with port numbers, but with no numbering and no guarantee (UDP).',3:'An “IP envelope” is added with the from-address and the to-address. Routers read this.',2:'A local delivery label with MAC addresses is added. Switches read this, and it is replaced at every router.',1:'Everything becomes 1s and 0s: electrical, light or radio signals on the link.'},
+w=(c,t,i,d)=>`<div class="wr" style="border-color:${c};${rx?'animation:un .7s '+d+'s both':''}"><div class="wl" style="background:${c};${rx?'animation:unl .7s '+d+'s both':''}">${t}</div>${i}</div>`;
+let p=`<div class="pk">“${esc(L.msg)}”</div>`;
+if(st>=2)p=w(C[6],[L.cmp?'zipped':'',L.enc?'🔒 locked':'bytes'].filter(Boolean).join(' · '),p,3);
+if(st>=4)p=w(C[4],(tcp?'TCP':'UDP')+' · port '+x.sp+' → '+x.dp,p,2);
+if(st>=5)p=w(C[3],'IP · '+x.src+' → '+x.dst,p,1);
+if(st>=6)p=w(C[2],'Ethernet · '+x.smac+' → '+x.dmac,p,0);
+const list=[7,6,5,4,3,2,1].map(n=>`<div class="ly ${!rx&&n==l?'cur':''}" style="opacity:${rx||st>=8-n?1:.35};border-left-color:${C[n]}" onclick="LAB.st=${8-n};draw()"><b>${n}</b> ${LN[n]} <span class="mu">· ${SH[n]}</span></div>`).join('');
+return `<div class="mu" style="margin:6px 0">Like posting a letter: write it, put it in an envelope, add addresses, hand it to the courier. The receiver opens it in reverse. Press Next stage, or click a layer.</div><div style="display:flex;gap:14px;flex-wrap:wrap"><div style="flex:1 1 240px">${list}</div><div style="flex:1 1 320px"><div style="font-size:15px;margin-bottom:4px"><b>${rx?'📥 Receiver: unwrapping from the outside in':'📦 Layer '+l+' · '+LN[l]}</b></div><div style="margin-bottom:8px">${rx?'Each label peels off in turn, until the app gets exactly the message that was sent.':EZ[l]}</div>${p}${st==7?'<div class="bt">'+bits(utf8(L.msg).slice(0,3))+' …</div><div class="mu">Example: the first letters of your message as 1s and 0s.</div>':''}</div></div><label class="mu"><input type="checkbox" ${L.det?'checked':''} onchange="LAB.det=this.checked?1:0;draw()"> show technical tables</label>`}
+let J={i:0,tm:0,n:1};
+function jplay(){if(J.tm){clearInterval(J.tm);J.tm=0;return draw()}J.tm=setInterval(()=>{J.i++;if(J.i>=J.n-1){clearInterval(J.tm);J.tm=0}draw()},1500);draw()}
+function jny(){const s=dev(U.f.s),ip=(U.f.dst||'').trim(),H0='<b>Journey of one message</b> <span class="mu">(follows your cables; choose the source PC and destination IP in the Send row)</span>',bad=m=>H0+'<p class="mu">'+m+'</p>';
+if(!s)return bad('Pick a source PC.');const t=S.devs.find(d=>d!=s&&d.ifs.some(c=>c.ip&&c.ip==ip));if(!t)return bad('Type the IP address of a device you built as the destination.');if(!s.ifs[0].ip)return bad(s.name+' needs an IP address.');
+const pv={};pv[s.id]=null;const q=[s.id];
+while(q.length){const a=dev(q.shift());a.ifs.forEach((c,i)=>{const l=lk(c.link);if(!l||!l.up)return;const e=l.a[0]==a.id&&l.a[1]==i?l.b:l.a;if(!(e[0] in pv)){pv[e[0]]={f:a.id,oi:i,ii:e[1]};q.push(e[0])}})}
+if(!(t.id in pv))return bad('No working cable path from '+s.name+' to '+t.name+'. Link them up, or bring a down cable up.');
+const ids=[];for(let c=t.id;c!=null;c=pv[c]?pv[c].f:null)ids.unshift(c);
+const N=ids.map((id,k)=>({d:dev(id),ii:k?pv[id].ii:-1,oi:k<ids.length-1?pv[ids[k+1]].oi:-1})),sg=[];let a0=0;
+for(let k=1;k<N.length;k++)if(N[k].d.type!='sw'){sg.push({a:a0,b:k,sm:N[a0].d.ifs[N[a0].oi].mac,dm:N[k].d.ifs[N[k].ii].mac});a0=k}
+const src=s.ifs[0].ip,tcp=LAB.pr=='TCP',sp=49152,dp=tcp?80:5000,msg=LAB.msg,inn=k=>sg.findIndex(g=>g.b==k),outn=k=>sg.findIndex(g=>g.a==k),mid=k=>sg.findIndex(g=>k>g.a&&k<g.b),lnk=k=>sg.findIndex(g=>k>=g.a&&k<g.b);
+let ttl=+U.f.ttl||64;const T=[],add=(k,rows,pdu,g,text,o)=>T.push({k,rows,pdu,g,text,ttl,...o});
+N.forEach((n,k)=>{const d=n.d,last=k==N.length-1;
+if(k==0){const g=0,m0=sg[0].dm;add(k,[7,6,5],'data',g,'<b>Layers 7–5 (Application, Presentation, Session)</b>: you write “'+esc(msg)+'”. It becomes bytes'+(LAB.cmp?', is compressed':'')+(LAB.enc?', is encrypted':'')+', and a session is opened.');
+add(k,[4],'seg',g,'<b>Layer 4 Transport</b> adds port numbers'+(tcp?' and sequence numbers. Big data is cut into pieces (segments).':'.'));
+add(k,[3],'pkt',g,'<b>Layer 3 Network (packetizing)</b> adds the IP addresses: from <b>'+src+'</b> to <b>'+ip+'</b>.');
+add(k,[2],'frm',g,'<b>Layer 2 Data Link (framing)</b> adds MAC addresses and an error check (FCS). The destination MAC <b>'+m0+'</b> is the NEXT device on the path, not the final computer.');
+add(k,[1],'bits',g,'<b>Layer 1 Physical</b>: the frame is converted into bits (1s and 0s), then into signals on the cable.')}
+else if(d.type=='sw'){const g=mid(k),G=sg[g];add(k,[1],'bits',g,'<b>Switch, Layer 1</b>: signals arrive on port '+d.ifs[n.ii].n+' and are converted back into bits.');
+add(k,[2],'frm',g,'<b>Switch, Layer 2</b>: rebuilds the frame and checks the FCS. It READS the destination MAC <b>'+G.dm+'</b>, learns that <b>'+G.sm+'</b> lives on port '+d.ifs[n.ii].n+', looks in its MAC table (unknown means flood) and picks port '+d.ifs[n.oi].n+'. It never opens the IP packet.');
+add(k,[1],'bits',g,'<b>Switch, Layer 1</b>: the SAME frame goes out as bits and signals on port '+d.ifs[n.oi].n+'. Nothing was changed.')}
+else if(d.type=='rt'){const gi=inn(k),go=outn(k);add(k,[1],'bits',gi,'<b>Router, Layer 1</b>: signals arrive and become bits.');
+add(k,[2],'frm',gi,'<b>Router, Layer 2</b>: the frame is for this router (dst MAC is its own). FCS is ok, so it <b>removes the Ethernet header and FCS</b>. The old frame is thrown away.');
+ttl--;add(k,[3],'pkt',gi,'<b>Router goes UP to Layer 3</b>: reads the destination IP <b>'+ip+'</b>, lowers TTL '+(ttl+1)+' → '+ttl+', and finds the next hop in its routing table (longest match) out port '+d.ifs[n.oi].n+'. The IP addresses do not change.');
+add(k,[2],'frm',go,'<b>Router, Layer 2: re-packetizing</b>. It builds a NEW frame: source MAC = its own outgoing port, destination MAC = the next hop (found with ARP). The same IP packet is inside.');
+add(k,[1],'bits',go,'<b>Router, Layer 1</b>: the new frame is converted to bits and signals and sent out port '+d.ifs[n.oi].n+'.')}
+else{const gi=inn(k);add(k,[1],'bits',gi,'<b>Receiver, Layer 1</b>: signals become bits.');add(k,[2],'frm',gi,'<b>Layer 2</b>: FCS is ok and the destination MAC is mine, so <b>remove the Ethernet header</b>.');
+add(k,[3],'pkt',gi,'<b>Layer 3</b>: the destination IP is mine, so <b>remove the IP header</b>.');add(k,[4],'seg',gi,'<b>Layer 4</b>: put the pieces back in order, <b>remove the '+(tcp?'TCP':'UDP')+' header</b>'+(tcp?' and send an ACK':'')+'.');
+add(k,[7,6,5],'data',gi,'<b>Layers 7–5</b>: '+(LAB.enc?'decrypt, ':'')+(LAB.cmp?'decompress, ':'')+'decode. The app receives “'+esc(msg)+'”.')}
+if(!last)add(k,[1],'bits',lnk(k),'<b>On the cable</b>: the bits travel as signals (electrical pulses, light or radio waves) to the next device.',{link:k})});
+J.n=T.length;J.i=Math.max(0,Math.min(J.i,T.length-1));const cur=T[J.i],g=sg[cur.g]||sg[0],P=cur.pdu,
+w=(c,t,i)=>`<div class="wr" style="border-color:${c}"><div class="wl" style="background:${c}">${t}</div>${i}</div>`,PN={data:'Data',seg:tcp?'Segment':'Datagram',pkt:'Packet',frm:'Frame',bits:'Bits'};
+let p=`<div class="pk">“${esc(msg)}”${LAB.enc?' 🔒':''}</div>`;
+if(P!='data')p=w('#0d9488',(tcp?'TCP':'UDP')+' · port '+sp+' → '+dp,p);
+if(P=='pkt'||P=='frm'||P=='bits')p=w('#d97706','IP · '+src+' → '+ip+' · TTL '+cur.ttl,p);
+if(P=='frm'||P=='bits')p=w('#be123c','Ethernet · '+g.sm+' → '+g.dm+' · FCS',p);
+if(P=='bits')p+=`<div class="bt">${bits(utf8(msg).slice(0,3))} …</div><div class="mu">Example bits (first letters of your data). The real frame has many more.</div>`;
+let cols='';N.forEach((n,k)=>{const d=n.d,sup=r=>d.type=='pc'||(d.type=='rt'&&r<=3)||(d.type=='sw'&&r<=2);
+cols+=`<div class="jd"><h5>${IC[d.type]} ${esc(d.name)}</h5>`+[7,6,5,4,3,2,1].map(r=>{const hi=cur.link===undefined&&cur.k==k&&cur.rows.includes(r)&&sup(r);return`<div class="jx ${sup(r)?'':'na'} ${hi?'hi':''}">${sup(r)?(hi?'L'+r+' · '+PN[P]:'L'+r+' '+LN[r]):''}</div>`}).join('')+'</div>';
+if(k<N.length-1)cols+='<div class="jw">'+[7,6,5,4,3,2,1].map(r=>`<div class="jx">${r==1?'<div class="ln '+(cur.link===k?'on':'')+'"></div>':''}</div>`).join('')+'</div>'});
+return H0+`<div class="row"><button onclick="J.i=Math.max(0,J.i-1);draw()">◀ Back</button><button onclick="J.i=Math.min(J.n-1,J.i+1);draw()">Next ▶</button><button onclick="jplay()">${J.tm?'⏸ Pause':'▶ Play'}</button><button onclick="J.i=0;draw()">Restart</button><span class="mu">step ${J.i+1}/${J.n}</span></div><div class="jc">${cols}</div><div style="font-size:14px;margin:6px 0">${cur.text}</div>${p}<div class="mu" style="margin-top:6px">The path comes from your cables. The live simulator above still needs correct IPs, gateways and routes to deliver a packet.</div>`}
+function jrHtml(){const e=S.ev[U.ev];let pid=e&&e.f?e.f.pid:null;if(pid==null)for(let k=S.ev.length-1;k>=0;k--)if(S.ev[k].f){pid=S.ev[k].f.pid;break}
+const L=S.ev.filter(x=>x.f&&x.f.pid==pid);if(!L.length)return'<b>Packet journey</b><p class="mu">Press Send, then Step. This table lists the source and destination addresses at every hop, and highlights what changed.</p>';
+const V=x=>{const f=x.f;return[f.sm||'—',f.dm||'—',f.ip?f.ip.src:f.arp?f.arp.sip:'—',f.ip?f.ip.dst:f.arp?f.arp.tip:'—',f.ip?f.ip.ttl:'—',f.l4?(f.l4.sport?f.l4.sport+'→'+f.l4.dport:f.l4.type||''):'',f.data||'']};
+let pv=null;return'<b>Packet journey</b> <span class="mu">(yellow = changed since the previous hop; click an event in the timeline to follow another packet)</span><table><tr>'+['#','At device','Src MAC','Dst MAC','Src IP','Dst IP','TTL','Ports','Data'].map(h=>'<th>'+h).join('')+L.map(x=>{const v=V(x),r='<tr><td>'+x.n+'<td>'+esc(x.d)+v.map((c,i)=>`<td style="${pv&&pv[i]!=c?'background:var(--hl);font-weight:600':''}">${esc(c)}`).join('');pv=v;return r}).join('')+'</table>'}
+function cap(){return;const e=S.ev[U.ev];if(!e||!e.f)return;const f=e.f,t=[];if(f.sm)t.push('MAC '+f.sm+' → '+f.dm);if(f.ip)t.push('IP '+f.ip.src+' → '+f.ip.dst+'   TTL '+f.ip.ttl);else if(f.arp)t.push('ARP '+f.arp.sip+' → '+f.arp.tip);
+svg.insertAdjacentHTML('beforeend',`<g pointer-events="none"><rect x="150" y="262" width="420" height="${t.length*15+24}" rx="6" fill="var(--pn)" stroke="var(--bd)"/><text x="360" y="279" style="font-weight:600">#${e.n} at ${esc(e.d)}: ${e.kind}</text>`+t.map((s,i)=>`<text x="360" y="${294+i*15}">${esc(s)}</text>`).join('')+'</g>')}
+function draw(){drawTopo();cap();const f=U.f;$('#send').innerHTML=`<b>Send:</b> <select onchange="U.f.s=this.value">${hosts().map(d=>`<option value="${d.id}" ${f.s==d.id?'selected':''}>${esc(d.name)}</option>`).join('')}</select> → <input size="13" value="${esc(f.dst)}" onchange="U.f.dst=this.value" placeholder="dest IP"> <select onchange="U.f.pr=this.value">${['ICMP','UDP','TCP'].map(p=>`<option ${f.pr==p?'selected':''}>${p}</option>`).join('')}</select> TTL <input type="number" min="1" max="255" style="width:60px" value="${f.ttl}" onchange="U.f.ttl=+this.value"> <input size="9" value="${esc(f.data)}" onchange="U.f.data=this.value"> <button onclick="doSend()">Send</button> <span class="mu">then press Step</span>`;
+$('#jny').innerHTML=jny();$('#lab').innerHTML=labHtml();$('#jr').innerHTML=jrHtml();$('#tabs').innerHTML=[['dev','Device'],['pkt','Packet'],['learn','Learn']].map(([k,n])=>`<button class="${U.tab==k?'on':''}" onclick="U.tab='${k}';draw()">${n}</button>`).join('');
+$('#side').innerHTML={dev:devHtml,pkt:pktHtml,learn:learnHtml}[U.tab]();
+$('#tl').innerHTML='<b>Event timeline</b> '+tb(['#','Device','L','Event','What happened'],S.ev.slice(-150).map(e=>[e.n,esc(e.d),e.layer,`<span class="k ${e.kind=='DROP'?'bad':e.kind=='DELIVER'?'ok':''}">${e.kind}</span>`,esc(e.txt)])).replace(/<tr><td>(\d+)/g,(m,n)=>`<tr class="${n==U.ev+1?'sel':''}" onclick="U.ev=${n-1};U.tab='pkt';draw()"><td>${n}`);
+if(U.ev==S.ev.length-1)$('#tl').scrollTop=1e6;['sel','link','del'].forEach(m=>$('#m_'+m).className=U.mode==m?'on':'');$('#bPlay').textContent=U.play?'⏸ Pause':'▶ Play';$('#err').textContent=U.err;$('#st').textContent='step '+S.t+' · queue '+S.q.length}
+svg.onpointerdown=e=>{const g=e.target.closest('[data-d]'),ln=e.target.closest('[data-l]');U.err='';
+if(g){const d=dev(g.dataset.d);if(U.mode=='del')rmDev(d);else if(U.mode=='link'){if(!U.a){U.a=d.id;U.err='Selected '+d.name+' — now click the second device to cable them'}else{U.err=conn(dev(U.a),d);U.a=null}}else{U.sel=d.id;U.drag=d;U.tab='dev'}}
+else if(ln){const l=lk(ln.dataset.l);if(U.mode=='del')rmLink(l);else if(U.mode=='sel')l.up=!l.up}draw()};
+svg.onpointermove=e=>{if(!U.drag)return;const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;const q=p.matrixTransform(svg.getScreenCTM().inverse());U.drag.x=Math.round(q.x);U.drag.y=Math.round(q.y);drawTopo()};
+window.onpointerup=()=>{U.drag=null};
+/* ---------- self-tests (run the real engine headlessly) ---------- */
+function tests(){const R=[],T=(n,c)=>R.push((c?'✔ ':'✖ ')+n),dr=()=>{let n=0;while(step()&&n++<500);},has=(k,s)=>S.ev.some(e=>e.kind==k&&e.txt.includes(s));
+load('A');let[p1,p2,p3]=hosts(),sw=S.devs.find(d=>d.type=='sw'),m=x=>x.ifs[0].mac;send(p1.id,p2.ifs[0].ip,'ICMP',64);dr();
+T('MAC learning: switch learned PC1+PC2 (not silent PC3)',sw.mt[m(p1)]&&sw.mt[m(p2)]&&!sw.mt[m(p3)]);T('ARP: PC1 cached PC2 MAC',p1.arp[p2.ifs[0].ip]==m(p2));
+T('Flooding: PC3 received (and ignored) the ARP broadcast',S.ev.some(e=>e.d==p3.name&&e.kind=='DISCARD'));T('Ping delivered',has('DELIVER','succeeded'));
+sw.mt={};S.ev=[];send(p1.id,p2.ifs[0].ip,'ICMP',64);dr();T('Unknown unicast flooded after clearing MAC table',has('SWITCH','unknown'));
+load('D');let r=S.devs.find(d=>d.type=='rt');r.routes.push({net:'10.0.0.0',mask:'255.0.0.0',nh:'10.0.1.99'});T('Longest-prefix match picks /24 over /8',plen(lpm(r,'10.0.2.10').mask)==24&&plen(lpm(r,'10.9.9.9').mask)==8);r.routes=[];
+[p1,p2]=hosts();send(p1.id,p2.ifs[0].ip,'ICMP',64);dr();let f=(S.ev.find(e=>e.d==p2.name&&e.f&&e.f.l4&&e.f.l4.type=='echo')||{}).f||{ip:{},sm:''};
+T('Router: TTL 64→63, IP src unchanged, Ethernet src MAC replaced',f.ip.ttl==63&&f.ip.src==p1.ifs[0].ip&&f.sm==r.ifs[1].mac);T('Cross-subnet ping succeeded',has('DELIVER','succeeded'));
+load('D');[p1,p2]=hosts();send(p1.id,p2.ifs[0].ip,'ICMP',1);dr();T('TTL expiry drops packet',has('DROP','TTL expired'));
+load('E');[p1,p2]=hosts();send(p1.id,p2.ifs[0].ip,'ICMP',64);dr();T('Two-router path works (static routes)',has('DELIVER','succeeded'));
+load('E');S.devs.find(d=>d.name=='R1').routes=[];[p1,p2]=hosts();send(p1.id,p2.ifs[0].ip,'ICMP',64);dr();T('Missing route drops packet',has('DROP','No route'));
+load('A');[p1]=hosts();send(p1.id,'192.168.1.77','ICMP',64);dr();T('ARP failure → timeout drop',has('DROP','ARP timeout'));
+load('A');[p1,p2]=hosts();S.links[0].up=false;send(p1.id,p2.ifs[0].ip,'ICMP',64);dr();T('Link down drops frame',has('DROP','down'));
+load('A');[p1,p2]=hosts();send(p1.id,p2.ifs[0].ip,'TCP',64,'hi');dr();T('TCP handshake then data delivered',has('TCP','SYN-ACK')&&has('DELIVER','TCP data'));
+load(U.sc);draw();$('#send').insertAdjacentHTML('beforeend','<div>'+R.map(x=>`<span class="${x[0]=='✔'?'ok':'bad'}">${x}</span>`).join('<br>')+'</div>')}
+load('D');draw();
+</script><script>
+/*NL-START*/
+const NL=(()=>{
+/* ---- Character (byte) stuffing: tokens are words (FLAG, ESC, A) or single characters ---- */
+const tok=(s,F,E)=>{const w=s.trim().split(/\s+/);return(w.length>1||w[0]===F||w[0]===E)?w:[...s.trim()]};
+const stuffC=(t,F,E)=>{const out=[],ins=[];t.forEach(x=>{if(x===F||x===E){ins.push(out.length);out.push(E)}out.push(x)});return{out,ins}};
+const unstuffC=(t,E)=>{const out=[];for(let i=0;i<t.length;i++){if(t[i]===E&&++i>=t.length)return{out,err:'The data ends with an escape symbol that has nothing after it.'};out.push(t[i])}return{out}};
+/* ---- Bit stuffing: after `run` consecutive 1s, insert a 0. Slide rule: run=7. Real HDLC: run=5 (flag 01111110) ---- */
+const stuffB=(b,run)=>{let out='',c=0;const ins=[];for(const x of b){out+=x;if(x==='1'){if(++c===run){ins.push(out.length-1+1);out+='0';c=0}}else c=0}return{out,ins}};
+const unstuffB=(b,run)=>{let out='',c=0;for(let i=0;i<b.length;i++){const x=b[i];out+=x;if(x==='1'){if(++c===run){i++;if(i<b.length&&b[i]==='1')return{out,err:'After '+run+' ones the next bit should be an inserted 0, but it is 1. In HDLC this means a flag or an error.'};c=0}}else c=0}return{out}};
+/* ---- IPv4 / subnetting ---- */
+const ip2n=s=>{const p=String(s).trim().split('.');return p.length===4&&p.every(x=>/^\d{1,3}$/.test(x)&&+x<=255)?p.reduce((a,b)=>a*256+ +b,0):null};
+const n2ip=n=>[24,16,8,0].map(k=>n>>>k&255).join('.');
+const bin=n=>[24,16,8,0].map(k=>(n>>>k&255).toString(2).padStart(8,'0')).join('.');
+const mask=p=>p===0?0:(0xFFFFFFFF<<(32-p))>>>0;
+function sub(ip,p){const n=ip2n(ip);if(n===null)return{err:'“'+ip+'” is not a valid IPv4 address. Use four numbers from 0 to 255 separated by dots, like 192.168.1.10.'};
+if(!Number.isInteger(p)||p<0||p>32)return{err:'The prefix length must be a whole number from 0 to 32.'};
+const m=mask(p),nw=(n&m)>>>0,bc=(nw|~m)>>>0,tot=2**(32-p);let f=nw+1,l=bc-1,u=tot-2;
+if(p===32){f=l=nw;u=1}else if(p===31){f=nw;l=bc;u=2}return{ip:n,m,nw,bc,tot,u,f,l,p}}
+function split(ip,p,k){const b=sub(ip,p);if(b.err)return b;if(!Number.isInteger(k)||k<2||(k&(k-1)))return{err:'Number of subnets must be a power of 2 (2, 4, 8, 16 ...).'};
+const np=p+Math.log2(k);if(np>32)return{err:'Too many subnets: a /'+p+' network cannot be split into '+k+' parts.'};const size=2**(32-np);return{list:Array.from({length:k},(_,i)=>sub(n2ip(b.nw+i*size),np))}}
+function vlsm(ip,p,hs){const b=sub(ip,p);if(b.err)return b;if(!hs.length||hs.some(h=>!Number.isInteger(h)||h<1))return{err:'Enter whole numbers of hosts, each at least 1, like 50,20,10,2.'};
+const L=hs.map((h,i)=>({h,i})).sort((a,c)=>c.h-a.h||a.i-c.i);let cur=b.nw;const list=[];
+for(const x of L){let bits=2;while(2**bits-2<x.h)bits++;const size=2**bits,pf=32-bits;if(pf<b.p||cur+size>b.nw+b.tot)return{err:'Not enough space: '+x.h+' hosts need a /'+pf+' ('+size+' addresses) but the network is full.'};
+list.push({name:'Dept '+(x.i+1),h:x.h,...sub(n2ip(cur),pf)});cur+=size}return{list}}
+/* ---- CRC-32 (the Ethernet FCS algorithm) ---- */
+const crc32=b=>{let c=-1;for(const x of b){c^=x;for(let k=0;k<8;k++)c=c&1?(c>>>1)^0xEDB88320:c>>>1}return(~c)>>>0};
+const tests=()=>{const R=[],T=(n,c)=>R.push([n,!!c]),cs=s=>stuffC(tok(s,'FLAG','ESC'),'FLAG','ESC').out.join(' ');
+T('Char stuffing example 1: A FLAG B → A ESC FLAG B',cs('A FLAG B')==='A ESC FLAG B');
+T('Char stuffing example 2: A ESC B → A ESC ESC B',cs('A ESC B')==='A ESC ESC B');
+T('Char stuffing example 3: A ESC FLAG B → A ESC ESC ESC FLAG B',cs('A ESC FLAG B')==='A ESC ESC ESC FLAG B');
+T('Char stuffing example 4: A ESC ESC B → A ESC ESC ESC ESC B',cs('A ESC ESC B')==='A ESC ESC ESC ESC B');
+T('abc*def → abc\\*def (flag *, escape \\)',stuffC([...'abc*def'],'*','\\').out.join('')==='abc\\*def');
+T('Char unstuffing recovers every example',['A FLAG B','A ESC B','A ESC FLAG B','A ESC ESC B','FLAG','ESC','FLAG FLAG ESC',''].every(s=>{const t=tok(s,'FLAG','ESC');return unstuffC(stuffC(t,'FLAG','ESC').out,'ESC').out.join(' ')===t.join(' ')}));
+T('Dangling ESC is reported',!!unstuffC(['A','ESC'],'ESC').err);
+T('Slide rule: 11111111 → 111111101',stuffB('11111111',7).out==='111111101');
+T('Slide rule: 11111110 → 111111100',stuffB('11111110',7).out==='111111100');
+T('HDLC: 111111 → 1111101',stuffB('111111',5).out==='1111101');
+T('HDLC: 01111110 → 011111010 (flag pattern destroyed)',stuffB('01111110',5).out==='011111010');
+let ok=1,noflag=1;for(const run of[5,7])for(let len=0;len<=12;len++)for(let v=0;v<2**len;v++){const s=len?v.toString(2).padStart(len,'0'):'',st=stuffB(s,run).out;if(unstuffB(st,run).out!==s)ok=0;if(run===5&&('0'+st+'0').includes('01111110')&&!st.includes('01111110')===false)noflag=0;if(run===5&&st.includes('111111'))noflag=0}
+T('Bit stuffing round-trips all strings up to 12 bits (runs 5 and 7)',ok);T('HDLC stuffed data never contains six 1s, so 01111110 cannot appear inside',noflag);
+const a=sub('192.168.1.10',24);T('192.168.1.10/24 → .0 / .255 / .1 / .254 / 256 / 254',n2ip(a.nw)==='192.168.1.0'&&n2ip(a.bc)==='192.168.1.255'&&n2ip(a.f)==='192.168.1.1'&&n2ip(a.l)==='192.168.1.254'&&a.tot===256&&a.u===254);
+const c=sub('10.0.0.77',26);T('10.0.0.77/26 → network .64, broadcast .127',n2ip(c.nw)==='10.0.0.64'&&n2ip(c.bc)==='10.0.0.127');
+T('/30 has 2 usable hosts',sub('10.0.0.1',30).u===2);T('/31 point-to-point: 2 usable',sub('10.0.0.0',31).u===2&&n2ip(sub('10.0.0.0',31).l)==='10.0.0.1');T('/32 host route: 1 address',sub('10.0.0.5',32).tot===1&&sub('10.0.0.5',32).u===1);
+T('/0 mask is 0.0.0.0 with 2^32 addresses',n2ip(sub('1.2.3.4',0).m)==='0.0.0.0'&&sub('1.2.3.4',0).tot===2**32);
+T('Invalid IPs rejected',['256.1.1.1','1.2.3','a.b.c.d','1.2.3.4.5','','01.2.3.-1'].every(x=>ip2n(x)===null||x==='01.2.3.-1'&&false));
+T('Bad prefix rejected',!!sub('1.2.3.4',33).err&&!!sub('1.2.3.4',-1).err&&!!sub('1.2.3.4',24.5).err);
+const s4=split('192.168.1.0',24,4);T('Split /24 into 4 → /26 at .0 .64 .128 .192',s4.list.map(x=>n2ip(x.nw)+'/'+x.p).join()==='192.168.1.0/26,192.168.1.64/26,192.168.1.128/26,192.168.1.192/26');T('Split rejects non power of 2',!!split('192.168.1.0',24,3).err);
+const v=vlsm('192.168.1.0',24,[50,20,10,2]);T('VLSM 50/20/10/2 → /26 /27 /28 /30, no overlap',v.list.map(x=>n2ip(x.nw)+'/'+x.p).join()==='192.168.1.0/26,192.168.1.64/27,192.168.1.96/28,192.168.1.112/30');T('VLSM reports not enough space',!!vlsm('192.168.1.0',24,[200,100]).err);
+T('CRC-32 of "123456789" is 0xCBF43926',crc32([...'123456789'].map(x=>x.charCodeAt(0)))===0xCBF43926);
+const d=[...'Hello'].map(x=>x.charCodeAt(0)),e=d.slice();e[1]^=4;T('One flipped bit changes the CRC (error detected)',crc32(d)!==crc32(e));
+return R};
+return{tok,stuffC,unstuffC,stuffB,unstuffB,ip2n,n2ip,bin,sub,split,vlsm,crc32,tests}})();
+/*NL-END*/
+(()=>{
+const E=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])),$$=id=>document.getElementById(id),sim=$$('simApp'),lab=$$('labApp');
+const card=(t,b)=>`<div class="pn"><h3>${t}</h3>${b}</div>`,inp=(id,v,w)=>`<input id="${id}" value="${E(v)}" style="width:${w||150}px">`,err=m=>`<p class="bad">⚠ ${E(m)}</p>`,mono='font-family:monospace;word-break:break-all';
+const FRD={FLAG:'A marker that shows where a frame starts or ends. Only protocols with explicit flags use it, for example HDLC (flag = 01111110). Ethernet does not use a separate flag like this: it uses a preamble and a start-of-frame delimiter before the frame.',HEADER:'Control information read first: usually the destination address, the source address and a type or length. Ethernet header = destination MAC, source MAC, EtherType (14 bytes). A generic CONTROL field is not in every Ethernet header.',PAYLOAD:'The data handed down from the layer above. For Ethernet this is usually an IPv4 or IPv6 packet.',TRAILER:'Error-check information at the end. Ethernet uses a 4-byte FCS (Frame Check Sequence) computed with CRC-32. It detects most accidental errors. It does not correct data and cannot promise to catch every possible error.'};
+let view='sim',cs=99,fl='',th='';
+function show(v){view=v;sim.hidden=v!=='sim';lab.hidden=v==='sim';document.querySelectorAll('#nv [data-v]').forEach(b=>b.className=b.dataset.v===v?'on':'');if(v!=='sim')render()}
+document.querySelectorAll('#nv [data-v]').forEach(b=>b.onclick=()=>show(b.dataset.v));$$('thm').onclick=()=>{th=th==='dark'?'light':'dark';document.documentElement.dataset.theme=th};
+function render(){if(view==='fr'){lab.innerHTML=frameCard()+charCard()+bitCard()+fcsCard();bindFr()}else if(view==='sn'){lab.innerHTML=subCard();bindSn()}else lab.innerHTML=testCard()}
+function frameCard(){return card('1 · What is a frame?',`<p>The data link layer puts the packet inside a <b>frame</b> so the receiver can see where it starts and ends. Click a field:</p><div class="row" id="fb" style="font-size:15px">${['FLAG','HEADER','PAYLOAD','TRAILER','FLAG'].map(n=>`<button data-f="${n}" style="padding:10px 14px">${n}</button>`).join('')}</div><p id="ft" class="mu">Click a field to learn what it does.</p><p class="mu">Bits can represent data at every digital layer. Framing adds boundaries and control information; the physical layer then sends the resulting bit stream as signals.</p>`)}
+function charCard(){return card('2 · Character (byte) stuffing',`<p>If the data contains the FLAG symbol, the receiver could think the frame ended. So the sender puts an <b>ESC</b> symbol before every FLAG <i>and</i> every ESC found in the data. The receiver removes that ESC and keeps the next symbol as plain data. ESC is not a frame boundary. Real protocols use different escape rules; this is the convention from your learning material.</p>
+<div class="row">Data ${inp('cd','A FLAG B',190)} FLAG ${inp('cf','FLAG',60)} ESC ${inp('ce','ESC',60)}</div><div class="row">${['A FLAG B','A ESC B','A ESC FLAG B','A ESC ESC B'].map((s,i)=>`<button data-ce="${s}">Example ${i+1}</button>`).join('')}<button data-ce="abc*def" data-cf="*" data-cx="\\">*abc*def</button><button id="cr">▶ Replay step by step</button><button id="cn">Next step</button><button id="ca">Show all</button></div><div id="co"></div><p class="mu">Words separated by spaces are treated as symbols. Text without spaces is split into single characters. For *abc*def the delimiter is * and the escape is \\ , and the data between the delimiters is abc*def.</p>`)}
+function bitCard(){return card('3 · Bit stuffing',`<p>Bit stuffing inserts extra bits so the reserved flag pattern cannot appear inside the data. Pick a rule — they are <b>not</b> the same thing:</p><div class="row"><select id="bm"><option value="7">Slide example: insert 0 after seven 1s (simplified)</option><option value="5">Real HDLC: flag 01111110, insert 0 after five 1s</option></select> Bits ${inp('bd','11111111',200)}</div><div class="row"><button data-b="11111111" data-m="7">Slide: 11111111</button><button data-b="11111110" data-m="7">Slide: 11111110</button><button data-b="01111110" data-m="5">HDLC: 01111110</button><button data-b="0111111111110" data-m="5">HDLC: long run of 1s</button></div><div id="bo"></div>`)}
+function fcsCard(){return card('4 · FCS / CRC-32 error detection',`<p>The sender computes a CRC-32 over the frame and puts it in the trailer. The receiver recomputes it. If one bit changes on the wire, the values differ and the frame is discarded. The CRC detects errors; it does not repair them.</p><div class="row">Payload ${inp('fd','Hello',160)} flip bit number ${inp('fb2','3',46)}</div><div id="fo"></div>`)}
+function bindFr(){document.querySelectorAll('#fb [data-f]').forEach(b=>b.onclick=()=>{$$('ft').innerHTML='<b>'+b.dataset.f+'</b>: '+FRD[b.dataset.f]});
+['cd','cf','ce'].forEach(i=>$$(i).oninput=()=>{cs=99;charOut()});document.querySelectorAll('[data-ce]').forEach(b=>b.onclick=()=>{$$('cd').value=b.dataset.ce;$$('cf').value=b.dataset.cf||'FLAG';$$('ce').value=b.dataset.cx||'ESC';cs=99;charOut()});
+$$('cr').onclick=()=>{cs=0;charOut()};$$('cn').onclick=()=>{cs++;charOut()};$$('ca').onclick=()=>{cs=99;charOut()};
+$$('bd').oninput=$$('bm').onchange=bitOut;document.querySelectorAll('[data-b]').forEach(b=>b.onclick=()=>{$$('bd').value=b.dataset.b;$$('bm').value=b.dataset.m;bitOut()});$$('fd').oninput=$$('fb2').oninput=fcsOut;charOut();bitOut();fcsOut()}
+function charOut(){const d=$$('cd').value,F=$$('cf').value,X=$$('ce').value,o=$$('co');if(!F||!X)return o.innerHTML=err('FLAG and ESC cannot be empty.');if(F===X)return o.innerHTML=err('FLAG and ESC must be different symbols, otherwise the receiver cannot tell them apart.');
+const t=NL.tok(d,F,X),j=t.some(x=>x.length>1)?' ':'',n=Math.min(cs,t.length),r=NL.stuffC(t,F,X),part=NL.stuffC(t.slice(0,n),F,X).out,un=NL.unstuffC(r.out,X);
+const rows=t.slice(0,n).map(x=>`<tr><td>${E(x)}<td>${x===F?`<b class="bad">insert ${E(X)}</b> first: this symbol looks like the frame delimiter`:x===X?`<b class="bad">insert ${E(X)}</b> first: an escape symbol in the data must itself be escaped`:'copy unchanged'}`).join('');
+o.innerHTML=`<table><tr><th>Next symbol<th>Sender action${rows}</table><p>Original data: <code style="${mono}">${E(t.join(j))}</code><br>Stuffed so far: <code style="${mono}">${E(part.join(j))}</code>${n<t.length?' …':''}</p>`+(n>=t.length?`<p>On the wire (framed): <code style="${mono}">${E([F,...r.out,F].join(j))}</code><br>Receiver unstuffs: <code style="${mono}">${E(un.out.join(j))}</code> ${un.err?err(un.err):un.out.join(j)===t.join(j)?'<span class="ok">✔ original data recovered</span>':'<span class="bad">✖ differs</span>'}<br><span class="mu">The receiver treats an unescaped ${E(F)} as the real boundary. After an ${E(X)} it keeps the next symbol as data.</span></p>`:'')}
+function bitOut(){const b=$$('bd').value.trim(),run=+$$('bm').value,o=$$('bo');if(!/^[01]*$/.test(b))return o.innerHTML=err('Bits can only contain 0 and 1.');const r=NL.stuffB(b,run),un=NL.unstuffB(r.out,run),ins=new Set(r.ins);
+const h=[...r.out].map((c,i)=>ins.has(i)?`<b style="background:var(--hl);color:var(--bad);padding:0 2px;border-radius:3px">${c}</b>`:c).join('');
+o.innerHTML=`<p class="mu">${run===5?'Real HDLC rule. Flag = 01111110. After five consecutive 1s in the data, the transmitter inserts a 0.':'Simplified rule from the slide, NOT HDLC. After seven consecutive 1s, the transmitter inserts a 0.'}</p><p>Original: <code style="${mono}">${b||'(empty)'}</code><br>Stuffed: <code style="${mono}">${h||'(empty)'}</code> (inserted 0s highlighted)<br>Inserted at output positions: ${r.ins.length?r.ins.map(i=>i+1).join(', '):'none'}<br>Receiver removes them: <code style="${mono}">${un.out||'(empty)'}</code> ${un.err?err(un.err):un.out===b?'<span class="ok">✔ original recovered</span>':'<span class="bad">✖ differs</span>'}</p>`+(run===5?`<p>Framed: <code style="${mono}">01111110 ${h} 01111110</code><br>Flag pattern inside the stuffed data? ${r.out.includes('01111110')?'<b class="bad">yes</b>':'<b class="ok">no ✔</b>'}</p>`:'')}
+function fcsOut(){const s=$$('fd').value,by=[...new TextEncoder().encode(s)],o=$$('fo');if(!by.length)return o.innerHTML=err('Type some payload text.');const k=(+$$('fb2').value|0),i=((k%(by.length*8))+by.length*8)%(by.length*8),c=by.slice();c[i>>3]^=1<<(7-i%8);const f=NL.crc32(by),g=NL.crc32(c),H=n=>'0x'+n.toString(16).padStart(8,'0');
+o.innerHTML=`<table><tr><th><th>Bytes<th>FCS sent<th>FCS recomputed<th>Result<tr><td>Clean<td>${by.length} B<td>${H(f)}<td>${H(f)}<td class="ok">✔ match, frame accepted<tr><td>Bit ${i} flipped<td>${by.length} B<td>${H(f)}<td>${H(g)}<td class="${f===g?'bad':'ok'}">${f===g?'not detected':'✖ mismatch, frame discarded'}</table><p class="mu">Real Ethernet computes the FCS over the whole frame (header + payload). CRC-32 detects all single-bit errors, but no check code can promise to catch every possible error.</p>`}
+function subCard(){return card('Subnet calculator',`<p>A subnet mask (or prefix like /24) splits an IPv4 address into a network part and a host part. 1 bits = network, 0 bits = host.</p><div class="row">IP ${inp('si','192.168.1.10',130)} / <input id="sp" type="number" min="0" max="32" value="24" style="width:56px"></div><div id="so"></div><h3>Split into equal subnets</h3><div class="row">Subnets <select id="sk">${[2,4,8,16].map(k=>`<option>${k}</option>`).join('')}</select></div><div id="sq"></div><h3>VLSM (hosts needed per department)</h3><div class="row">Hosts ${inp('sh','50,20,10,2',140)}</div><div id="sv"></div><p class="mu">Usable hosts = total − 2 (network and broadcast addresses). /31 (point-to-point links) uses both addresses and /32 is a single host route, so they are special cases.</p>`)}
+function bindSn(){['si','sp','sk','sh'].forEach(i=>$$(i).oninput=snOut);snOut()}
+function snOut(){const ip=$$('si').value,p=+$$('sp').value,r=NL.sub(ip,p),A=NL.n2ip;if(r.err){$$('so').innerHTML=err(r.err);$$('sq').innerHTML=$$('sv').innerHTML='';return}
+const row=(a,b)=>`<tr><td>${a}<td>${b}`;$$('so').innerHTML=`<table>${row('Subnet mask',A(r.m)+' = '+NL.bin(r.m))}${row('Network address',A(r.nw))}${row('Broadcast address',A(r.bc))}${row('First usable',A(r.f))}${row('Last usable',A(r.l))}${row('Total addresses',r.tot)}${row('Usable hosts',r.u+(p>=31?' (special case)':''))}</table><p>Step by step (binary AND):<br><code style="${mono}">IP &nbsp;&nbsp;&nbsp;${NL.bin(r.ip)}<br>Mask &nbsp;${NL.bin(r.m)}<br>AND &nbsp;&nbsp;${NL.bin(r.nw)} = ${A(r.nw)}</code></p>`;
+const s=NL.split(ip,p,+$$('sk').value);$$('sq').innerHTML=s.err?err(s.err):'<table><tr><th>Subnet<th>Range<th>Broadcast'+s.list.map(x=>`<tr><td>${A(x.nw)}/${x.p}<td>${A(x.f)} – ${A(x.l)}<td>${A(x.bc)}`).join('')+'</table>';
+const hs=$$('sh').value.split(',').map(x=>x.trim()===''?NaN:+x),v=NL.vlsm(ip,p,hs);$$('sv').innerHTML=v.err?err(v.err):'<table><tr><th>Dept<th>Hosts needed<th>Subnet<th>Usable range<th>Usable'+v.list.map(x=>`<tr><td>${x.name}<td>${x.h}<td>${A(x.nw)}/${x.p}<td>${A(x.f)} – ${A(x.l)}<td>${x.u}`).join('')+'</table>'}
+function testCard(){const R=NL.tests();return card('Self-tests for the new labs ('+R.filter(x=>x[1]).length+'/'+R.length+' pass)',R.map(x=>`<div class="${x[1]?'ok':'bad'}">${x[1]?'✔':'✖'} ${E(x[0])}</div>`).join('')+'<p class="mu">The original simulator self-tests are still under the Simulator tab (“Run self-tests”).</p>')}
+})();
+
+/*TB-START*/
+const TBP=(NL=>{
+const N={PC1:{x:50,y:45,mac:'aa:01',ip:'10.0.1.10',sw:'SW1'},PC2:{x:50,y:130,mac:'aa:02',ip:'10.0.1.11',sw:'SW1'},PC3:{x:50,y:215,mac:'aa:03',ip:'10.0.1.12',sw:'SW1'},SW1:{x:200,y:130},R1:{x:360,y:130},SW2:{x:520,y:130},PC4:{x:670,y:130,mac:'bb:04',ip:'10.0.2.10',sw:'SW2'}};
+const PORT={SW1:{Fa1:'PC1',Fa2:'PC2',Fa3:'PC3',Fa4:'R1'},SW2:{Fa1:'R1',Fa2:'PC4'}},RM={SW1:'cc:01',SW2:'cc:02'};
+const RT=[{n:'10.0.1.0',p:24,t:'connected',o:'eth0 → SW1',side:'SW1'},{n:'10.0.2.0',p:24,t:'connected',o:'eth1 → SW2',side:'SW2'},{n:'10.0.0.0',p:8,t:'static (example route)',o:'eth0 → SW1',side:'SW1'},{n:'0.0.0.0',p:0,t:'default (example route)',o:'eth1 → SW2',side:'SW2'}];
+const portOf=(sw,dv)=>Object.keys(PORT[sw]).find(p=>PORT[sw][p]===dv),mac=(sw,dv)=>dv==='R1'?RM[sw]:N[dv].mac;
+function plan(T0,s,d){const t=JSON.parse(JSON.stringify(T0)),S=[],P=(txt,dots,o)=>S.push({txt,dots:dots||[],T:JSON.parse(JSON.stringify(t)),...o});
+const a=N[s],b=N[d];if(!a||!b||!a.mac||!b.mac||s===d)return{err:'Pick two different PCs.'};const local=a.sw===b.sw,dm=local?b.mac:RM[a.sw];
+P(`${s} wants to send to ${d} (${b.ip}). ${local?`Same subnet, so the destination MAC is ${d}'s own MAC (${b.mac}).`:`${b.ip} is in a different subnet, so ${s} sends the frame to its default gateway R1: destination MAC = ${dm}. The destination IP stays ${b.ip}.`} <span class="mu">(ARP is assumed to be finished. MAC addresses are shortened.)</span>`,[[s,a.sw]]);
+const hop=(sw,from,sm,dm)=>{const inP=portOf(sw,from),old=t[sw][sm];t[sw][sm]=inP;
+P(`${sw} receives the frame on ${inP}. <b>LEARN</b>: the source MAC ${sm} is reachable on port ${inP}. ${old?'(Already known: row refreshed.)':'(New row added to the MAC table.)'}`,[],{hl:{sw,mac:sm}});
+const e=t[sw][dm];if(e&&e!==inP){const nx=PORT[sw][e];P(`<b>LOOKUP</b>: destination MAC ${dm} is in the table on ${e}, so the switch <b>FORWARDS</b> the frame only out ${e} (to ${nx}).`,[[sw,nx]],{hl:{sw,mac:dm}});return nx}
+const o=Object.entries(PORT[sw]).filter(([p])=>p!==inP);P(`<b>LOOKUP</b>: destination MAC ${dm} is NOT in the table, so the switch <b>FLOODS</b> the frame out every other port (${o.map(x=>x[0]).join(', ')}). Devices whose MAC does not match ignore it.`,o.map(x=>[sw,x[1]]));return o.map(x=>x[1]).find(v=>mac(sw,v)===dm)};
+hop(a.sw,s,a.mac,dm);
+if(local){P(`${d} receives the frame (the destination MAC is its own) and passes the data up. <b>Delivered ✔</b>`);return{S,T:t}}
+const dip=b.ip,mt=RT.map(x=>NL.sub(dip,x.p).nw===NL.ip2n(x.n)),w=mt.reduce((k,m,j)=>m&&(k<0||RT[j].p>RT[k].p)?j:k,-1),R=RT[w];
+P(`R1 receives the frame (the destination MAC is its own), removes the Ethernet header and reads the destination IP <b>${dip}</b>. It tests every row of the routing table: matching rows are marked.`,[],{rt:{mt,w:-1}});
+P(`<b>Longest-prefix match</b>: the longest matching prefix is /${R.p}, so ${R.n}/${R.p} (${R.t}) wins. TTL 64 → 63. R1 builds a NEW Ethernet frame: source MAC ${RM[R.side]}, destination MAC ${b.mac}. The IP addresses do not change: ${a.ip} → ${dip}. (ARP for ${b.mac} is assumed done.)`,[],{rt:{mt,w}});
+P(`R1 sends the new frame out ${R.o}.`,[['R1',R.side]],{rt:{mt,w}});hop(R.side,'R1',RM[R.side],b.mac);
+P(`${d} receives the frame, removes the Ethernet and IP headers, and the data reaches the application. <b>Delivered ✔</b>`);return{S,T:t,win:R}}
+return{N,RT,plan}})(NL);
+/*TB-END*/
+(()=>{
+const $$=id=>document.getElementById(id),lab=$$('labApp'),sim=$$('simApp'),n=TBP.N,NS='http://www.w3.org/2000/svg';
+let T={SW1:{},SW2:{}},st=[],i=-1,tm=0,sel={s:'PC1',d:'PC2'},msg='';
+const b=document.createElement('button');b.dataset.v='tb';b.textContent='Tables Animation';$$('thm').before(b);
+b.onclick=()=>{sim.hidden=true;lab.hidden=false;document.querySelectorAll('#nv [data-v]').forEach(x=>x.className=x===b?'on':'');draw()};
+const stop=()=>{clearInterval(tm);tm=0};
+function draw(){const s=i>=0?st[i]:null,Tn=s?s.T:T,hl=s&&s.hl,rt=s&&s.rt,act=new Set(s?s.dots.flat():[]),pcs=Object.keys(n).filter(k=>k[0]==='P'),opts=v=>pcs.map(k=>`<option ${k===v?'selected':''}>${k}</option>`).join('');
+const L=[['PC1','SW1'],['PC2','SW1'],['PC3','SW1'],['SW1','R1'],['R1','SW2'],['SW2','PC4']];
+const svg=`<svg id="tbS" viewBox="0 0 720 260">${L.map(([a,c])=>`<line x1="${n[a].x}" y1="${n[a].y}" x2="${n[c].x}" y2="${n[c].y}" stroke="var(--mu)" stroke-width="3"/>`).join('')}${Object.entries(n).map(([k,v])=>`<g transform="translate(${v.x},${v.y})"><rect x="-30" y="-20" width="60" height="40" rx="8" fill="var(--pn)" stroke="${act.has(k)?'var(--ac)':'var(--bd)'}" stroke-width="${act.has(k)?3:1.5}"/><text y="5">${k}</text>${v.ip?`<text y="34" style="fill:var(--mu);font-size:10px">${v.ip}</text>`:''}</g>`).join('')}</svg>`;
+const sw=nm=>`<div style="flex:1 1 190px"><b>${nm} switching (MAC) table</b><table><tr><th>MAC<th>Port${Object.entries(Tn[nm]).map(([m,p])=>`<tr class="${hl&&hl.sw===nm&&hl.mac===m?'ch':''}"><td>${m}<td>${p}`).join('')||'<tr><td colspan="2" class="mu">empty'}</table></div>`;
+const rtb=`<div style="flex:2 1 300px"><b>R1 routing table</b><table><tr><th>Network<th>Type<th>Out<th>Match?${TBP.RT.map((x,k)=>`<tr class="${rt&&rt.w===k?'ch':''}"><td>${x.n}/${x.p}<td>${x.t}<td>${x.o}<td>${rt?(rt.w===k?'<b>✔ WINNER (longest)</b>':rt.mt[k]?'✔ matches':'✗ no'):'—'}`).join('')}</table></div>`;
+lab.innerHTML=`<div class="pn"><h3>Switching table and routing table, step by step</h3><p>A <b>switch</b> learns “which MAC is on which port” and uses its MAC table to forward frames. A <b>router</b> looks at the destination IP, picks the matching route with the longest prefix, and builds a new frame for the next link.</p><div class="row">From <select id="ts">${opts(sel.s)}</select> to <select id="td">${opts(sel.d)}</select> <button id="tg">Send ▶</button><button id="tb1">◀ Back</button><button id="tn">Next ▶</button><button id="tp">${tm?'⏸ Pause':'▶ Play'}</button><button id="tr">Clear tables</button><span class="mu">${s?'step '+(i+1)+'/'+st.length:''}</span></div>${svg}<div style="font-size:14px;min-height:60px;margin:6px 0">${msg?`<span class="bad">${msg}</span>`:s?s.txt:'Choose two PCs and press Send. Send several times (try PC1→PC2, then PC2→PC1, then PC1→PC4) and watch the tables fill up.'}</div><div class="row" style="align-items:flex-start">${sw('SW1')}${rtb}${sw('SW2')}</div><p class="mu">Educational model: fixed example network, ARP assumed done, no MAC aging. Switch rows are learned only from frames that cross the switch.</p></div>`;
+$$('ts').onchange=e=>sel.s=e.target.value;$$('td').onchange=e=>sel.d=e.target.value;
+$$('tg').onclick=()=>{stop();const r=TBP.plan(T,sel.s,sel.d);if(r.err){msg=r.err;return draw()}msg='';st=r.S;T=r.T;i=0;draw()};
+$$('tb1').onclick=()=>{stop();if(i>0)i--;draw()};$$('tn').onclick=()=>{stop();if(i<st.length-1)i++;draw()};
+$$('tp').onclick=()=>{if(tm){stop();return draw()}if(!st.length)return;if(i>=st.length-1)i=0;tm=setInterval(()=>{if(!$$('tbS')||i>=st.length-1){stop();if($$('tbS'))draw();return}i++;draw()},1800);draw()};
+$$('tr').onclick=()=>{stop();T={SW1:{},SW2:{}};st=[];i=-1;msg='';draw()};
+if(s)s.dots.forEach(([f,t])=>{const c=document.createElementNS(NS,'circle');c.setAttribute('r',7);c.setAttribute('fill','#f59e0b');$$('tbS').append(c);c.animate([{transform:`translate(${n[f].x}px,${n[f].y}px)`},{transform:`translate(${n[t].x}px,${n[t].y}px)`}],{duration:900,fill:'forwards'})})}
+})();
+
+/*EN-START*/
+const ENP=(()=>{
+const KINDS=['NRZ-L','NRZ-I','Manchester','Diff. Manchester','AMI'];
+/* Line coding: each bit becomes two half-bit levels (+1 high, -1 low, 0 zero volts). Conventions differ between books. */
+function line(bits,kind){const o=[];let lv=-1,ami=1;for(const c of bits){const b=+c;
+if(kind==='NRZ-L')o.push(b?1:-1,b?1:-1);
+else if(kind==='NRZ-I'){if(b)lv=-lv;o.push(lv,lv)}
+else if(kind==='Manchester')o.push(b?-1:1,b?1:-1); /* IEEE 802.3: 1 = low→high, 0 = high→low */
+else if(kind==='Diff. Manchester'){if(!b)lv=-lv;o.push(lv);lv=-lv;o.push(lv)} /* 0 = transition at bit start; always a mid-bit transition */
+else{if(b){o.push(ami,ami);ami=-ami}else o.push(0,0)}}return o}
+/* Huffman coding: frequent symbols get short codes. Left edge = 0, right edge = 1. */
+function huff(text){const f=new Map();for(const ch of text)f.set(ch,(f.get(ch)||0)+1);if(!f.size)return{err:'Type some text.'};if(f.size>16)return{err:'Use at most 16 different characters so the tree fits on the screen.'};
+let id=0,ns=[...f].sort((a,b)=>a[1]-b[1]||(a[0]<b[0]?-1:1)).map(([ch,n])=>({ch,f:n,id:id++}));
+while(ns.length>1){ns.sort((a,b)=>a.f-b.f||a.id-b.id);const l=ns.shift(),r=ns.shift();ns.push({f:l.f+r.f,l,r,id:id++})}
+let root=ns[0];if(root.ch!==undefined)root={f:root.f,l:root,r:null,id:id++};
+const codes={};(function w(n,p){if(n.ch!==undefined)codes[n.ch]=p||'0';else{w(n.l,p+'0');if(n.r)w(n.r,p+'1')}})(root,'');
+const enc=[...text].map(c=>codes[c]).join('');return{root,codes,freq:f,enc,dec:huffDecode(enc,root)}}
+function huffDecode(enc,root){let n=root,out='';for(const b of enc){n=b==='0'?n.l:n.r;if(n.ch!==undefined){out+=n.ch;n=root}}return out}
+const tests=()=>{const R=[],T=(n,c)=>R.push([n,!!c]),lv=(b,k)=>line(b,k).join();
+T('NRZ-L 1011',lv('1011','NRZ-L')==='1,1,-1,-1,1,1,1,1'.replace('-1,-1,1,1','-1,-1,1,1'));
+T('NRZ-I 1101 (starts low, 1 = flip)',lv('1101','NRZ-I')==='1,1,-1,-1,-1,-1,1,1');
+T('Manchester 10 (IEEE 802.3) = low→high, high→low',lv('10','Manchester')==='-1,1,1,-1');
+T('Manchester has a mid-bit transition in every bit',['0','1','0110','111000'].every(s=>{const L=line(s,'Manchester');return s.split('').every((_,k)=>L[2*k]!==L[2*k+1])}));
+T('Differential Manchester: always a mid-bit transition; 0 = start transition',(()=>{const s='0110100',L=line(s,'Diff. Manchester');let prev=-1;return[...s].every((c,k)=>{const st=L[2*k]!==prev;prev=L[2*k+1];return L[2*k]!==L[2*k+1]&&st===(c==='0')})})());
+T('AMI: 1s alternate +1/-1, 0 stays at 0 V',lv('1011','AMI')==='1,1,0,0,-1,-1,1,1');
+T('NRZ-I transitions = number of 1 bits',(()=>{const s='1101001',L=[-1,...line(s,'NRZ-I')];let t=0;for(let k=1;k<L.length;k+=2)if(L[k]!==L[k-1])t++;return t===4})());
+const h=huff('aaabbc');T('Huffman aaabbc: lengths a1 b2 c2, 9 bits total',h.codes.a.length===1&&h.codes.b.length===2&&h.codes.c.length===2&&h.enc.length===9);
+T('Huffman decode returns the original text',['abracadabra','aaabbc','hello world','x','aaaa','ab'].every(s=>huff(s).dec===s));
+T('Huffman codes are prefix-free',(()=>{const c=Object.values(huff('abracadabra hello').codes);return c.every((x,i)=>c.every((y,j)=>i===j||!y.startsWith(x)))})());
+T('Huffman single symbol gets code 0',huff('aaaa').codes.a==='0');T('Huffman rejects empty and >16 symbols',!!huff('').err&&!!huff('abcdefghijklmnopq').err);
+return R};
+return{KINDS,line,huff,huffDecode,tests}})();
+/*EN-END*/
+(()=>{
+const $$=id=>document.getElementById(id),lab=$$('labApp'),sim=$$('simApp'),E=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const b=document.createElement('button');b.dataset.v='en';b.textContent='Encoding Lab';$$('thm').before(b);
+b.onclick=()=>{sim.hidden=true;lab.hidden=false;document.querySelectorAll('#nv [data-v]').forEach(x=>x.className=x===b?'on':'');build()};
+const INFO=[['NRZ-L','1 = high, 0 = low for the whole bit.','No. A long run of equal bits has no changes, so clocks can drift.'],['NRZ-I','1 = change level at the start of the bit, 0 = no change.','No. Long runs of 0s have no changes.'],['Manchester','Change in the middle of every bit (IEEE 802.3: 1 = low→high, 0 = high→low; some books use the opposite).','Yes: every bit has a transition. Needs about twice the signal changes.'],['Diff. Manchester','Always a middle change. 0 = also change at the start of the bit, 1 = no change at the start.','Yes: every bit has a middle transition.'],['AMI','0 = 0 volts. 1 = alternately +high and −high.','Only for 1s. Long runs of 0s have no changes.']];
+function build(){lab.innerHTML=`<div class="pn"><h3>Encoding: bits → signals, and data → fewer bits</h3><p><b>Line coding</b> (physical layer) decides which voltage levels represent 0s and 1s. <b>Huffman coding</b> is a different idea: a data compression method (it belongs with “presentation”) that gives short codes to common symbols. The names are similar but they solve different problems.</p></div>
+<div class="pn"><h3>Line coding graphs</h3><div class="row">Bits <input id="enb" value="10110010" style="width:200px"> <span class="mu">(1 to 24 bits)</span></div><div id="enw" style="overflow-x:auto"></div></div>
+<div class="pn"><h3>Huffman coding tree</h3><div class="row">Text <input id="ent" value="abracadabra" style="width:240px"> <span class="mu">(up to 16 different characters)</span></div><div id="eth" style="overflow-x:auto"></div></div>`;$$('enb').oninput=wave;$$('ent').oninput=tree;wave();tree()}
+function wave(){const s=$$('enb').value.trim(),o=$$('enw');if(!/^[01]+$/.test(s)||s.length>24)return o.innerHTML='<p class="bad">⚠ Enter 1 to 24 bits using only 0 and 1.</p>';
+const W=36,X0=100,w=X0+s.length*W+10,rh=64,H=24+ENP.KINDS.length*rh;let g='';for(let k=0;k<=s.length;k++)g+=`<line x1="${X0+k*W}" y1="18" x2="${X0+k*W}" y2="${H}" stroke="var(--bd)" stroke-dasharray="3 3"/>`;
+[...s].forEach((c,k)=>g+=`<text x="${X0+k*W+W/2}" y="13" style="font-weight:700">${c}</text>`);
+ENP.KINDS.forEach((kd,r)=>{const L=ENP.line(s,kd),yc=24+r*rh+rh/2,y=v=>yc-v*18;let d='';L.forEach((v,k)=>{const x=X0+k*W/2;d+=(k?`L${x},${y(L[k-1])}L${x},${y(v)}`:`M${x},${y(v)}`)+`L${x+W/2},${y(v)}`});g+=`<line x1="${X0}" y1="${yc}" x2="${w-10}" y2="${yc}" stroke="var(--bd)"/><text x="48" y="${yc+4}">${kd}</text><path d="${d}" fill="none" stroke="var(--ac)" stroke-width="2.5"/>`});
+o.innerHTML=`<svg viewBox="0 0 ${w} ${H}" style="min-width:${Math.min(w,520)}px">${g}</svg><table><tr><th>Code<th>Rule<th>Self-clocking?${INFO.map(x=>'<tr><td>'+x.map(E).join('<td>')).join('')}</table><p class="mu">Educational drawing: ideal square waves. Real links add line coding details, noise and filtering. Rules differ slightly between textbooks and standards.</p>`}
+function tree(){const t=$$('ent').value,r=ENP.huff(t),o=$$('eth');if(r.err)return o.innerHTML='<p class="bad">⚠ '+E(r.err)+'</p>';
+let li=0,md=0;const pos=(n,d)=>{md=Math.max(md,d);n.d=d;const ks=[n.l,n.r].filter(Boolean);if(n.ch!==undefined)n.x=li++*48+30;else{ks.forEach(c=>pos(c,d+1));n.x=ks.reduce((a,c)=>a+c.x,0)/ks.length}};pos(r.root,0);
+const Y=d=>d*58+30,vis=c=>c===' '?'␣':c;let ed='',nd='';(function w(n){[['0',n.l],['1',n.r]].forEach(([lb,c])=>{if(!c)return;ed+=`<line x1="${n.x}" y1="${Y(n.d)}" x2="${c.x}" y2="${Y(c.d)}" stroke="var(--mu)" stroke-width="2"/><text x="${(n.x+c.x)/2+(lb==='0'?-8:8)}" y="${(Y(n.d)+Y(c.d))/2}" style="fill:var(--ac);font-weight:700">${lb}</text>`;w(c)});
+const leaf=n.ch!==undefined;nd+=`<circle cx="${n.x}" cy="${Y(n.d)}" r="16" fill="${leaf?'var(--hl)':'var(--pn)'}" stroke="var(--ac)" stroke-width="2"/><text x="${n.x}" y="${Y(n.d)+4}" style="font-weight:700">${leaf?E(vis(n.ch)):n.f}</text>`+(leaf?`<text x="${n.x}" y="${Y(n.d)+30}" style="font-size:10px;fill:var(--mu)">×${n.f}</text>`:'')})(r.root);
+const W=li*48+40,H=(md+1)*58+50,rows=Object.entries(r.codes).sort((a,c)=>a[1].length-c[1].length||(a[0]<c[0]?-1:1)),fx=new TextEncoder().encode(t).length*8,mx=Math.max(...r.freq.values());
+const bars=rows.map(([c],k)=>{const h=r.freq.get(c)/mx*60;return`<rect x="${k*30+10}" y="${70-h}" width="20" height="${h}" fill="var(--ac)" rx="3"/><text x="${k*30+20}" y="84">${E(vis(c))}</text><text x="${k*30+20}" y="${66-h}" style="font-size:10px">${r.freq.get(c)}</text>`}).join('');
+o.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="min-width:${Math.min(W,420)}px">${ed}${nd}</svg><p class="mu">Round circles with a number are joined nodes (total frequency). Yellow circles are characters. Go left = 0, right = 1. The path from the top to a character is its code.</p><table><tr><th>Char<th>Count<th>Code<th>Bits used${rows.map(([c,k])=>`<tr><td>${E(vis(c))}<td>${r.freq.get(c)}<td><code>${k}</code><td>${r.freq.get(c)*k.length}`).join('')}</table><p>Encoded: <code style="word-break:break-all">${r.enc}</code><br>Huffman: <b>${r.enc.length} bits</b> · plain UTF-8 (8 bits per byte): <b>${fx} bits</b> · ${r.enc.length<fx?'saved '+Math.round((1-r.enc.length/fx)*100)+'%':'no saving'} (the code table must also be sent, so tiny texts may not really win).<br>Decoded back: <b>${E(r.dec)}</b> ${r.dec===t?'<span class="ok">✔ identical</span>':'<span class="bad">✖ differs</span>'}</p><b>Frequency graph</b><svg viewBox="0 0 ${Math.max(rows.length*30+20,120)} 92" style="max-width:${rows.length*30+60}px">${bars}</svg>`}
+})();
+
+/*SL-START*/
+const SLP=(()=>{
+const H=[{n:'PC1',ip:'10.1.1.1',mac:'AAA',port:'Fa0/1'},{n:'PC2',ip:'10.1.1.2',mac:'BBB',port:'Fa0/2'},{n:'PC3',ip:'10.1.1.3',mac:'CCC',port:'Fa0/3'},{n:'PC4',ip:'10.1.1.4',mac:'DDD',port:'Fa0/4'}],BC='FFFF',AGE=300,cp=o=>JSON.parse(JSON.stringify(o));
+/* One frame through the switch: Receive → Learn (source MAC) → Decide (destination MAC) → Deliver. di = PC index or 'BC' */
+function plan(T0,si,di,hdr){const T=cp(T0),S=[],P=o=>S.push({hdr:hdr||'',T:cp(T),...o}),s=H[si],bc=di==='BC',d=bc?null:H[di];
+if(!s||(!bc&&(!d||si===di)))return{err:'Pick two different devices.'};
+const dm=bc?BC:d.mac,fr=[s.mac,dm],oth=H.map((_,k)=>k).filter(k=>k!==si),pp=k=>'pp'+k,pc=k=>'pc'+k;
+P({phase:1,txt:`<b>Step 1 · Receive.</b> ${s.n} sends a frame. It carries the source MAC (${s.mac}) and the destination MAC (${dm}${bc?', the broadcast address':''}). The frame arrives on port ${s.port}.`,fr,mv:[[pc(si),pp(si)]],inp:si});
+const e=T.find(x=>x.mac===s.mac);let t2;
+if(!e){T.push({mac:s.mac,port:s.port,age:AGE});t2=`${s.mac} is not in the table, so the switch <b>learns</b> it: new entry ${s.mac} → ${s.port}, age timer ${AGE} s.`}
+else if(e.port!==s.port){t2=`${s.mac} was on ${e.port} but now arrives on ${s.port}. The switch updates the port and resets the age timer to ${AGE} s.`;e.port=s.port;e.age=AGE}
+else{e.age=AGE;t2=`${s.mac} is already in the table, so the switch only <b>refreshes</b> the age timer back to ${AGE} s.`}
+P({phase:2,txt:`<b>Step 2 · Learn.</b> The switch reads the <b>source</b> MAC. ${t2}`,fr,at:pp(si),hl:s.mac,inp:si});
+const k=bc?null:T.find(x=>x.mac===dm),dk=k?H.findIndex(h=>h.port===k.port):-1;
+if(k&&dk===si){P({phase:3,txt:`<b>Step 3 · Filter.</b> ${dm} is on the same port (${s.port}) the frame came from, so the switch does not forward it.`,fr,at:pp(si),hl:dm,inp:si});P({phase:4,txt:'<b>Step 4 · Deliver.</b> Nothing is forwarded.',fr,at:pp(si),inp:si});return{S,T}}
+if(k){P({phase:3,txt:`<b>Step 3 · Forward.</b> The switch looks up the <b>destination</b> MAC ${dm}: it is on ${k.port}. The switch sends the frame <i>only</i> out of ${k.port}.`,fr,mv:[[pp(si),pp(dk)]],hl:dm,inp:si});
+P({phase:4,txt:`<b>Step 4 · Deliver.</b> ${d.n} owns ${dm}, so it accepts the frame. The other PCs never see it.`,fr,mv:[[pp(dk),pc(dk)]],marks:{[dk]:'✔'},inp:si})}
+else{P({phase:3,txt:`<b>Step 3 · Flood.</b> ${bc?`${dm} is the broadcast address, so the switch always floods it`:`${dm} is not in the table (unknown unicast), so the switch floods it`}: a copy leaves every port except ${s.port} (${oth.map(x=>H[x].port).join(', ')}).`,fr,mv:oth.map(x=>[pp(si),pp(x)]),inp:si});
+const m={};oth.forEach(x=>m[x]=bc||x===di?'✔':'✖');
+P({phase:4,txt:`<b>Step 4 · Deliver.</b> ${bc?'Every PC accepts a broadcast frame.':`Each PC compares the destination MAC with its own. ${d.n} accepts it (✔). ${oth.filter(x=>x!==di).map(x=>H[x].n).join(' and ')} ignore it (✖). When ${d.n} replies, the switch will learn ${dm} too.`}`,fr,mv:oth.map(x=>[pp(x),pc(x)]),marks:m,inp:si})}
+return{S,T}}
+/* Time passes: every age goes down; an entry whose timer reaches 0 is removed */
+function age(T0,sec){const T=[],gone=[];cp(T0).forEach(e=>{e.age-=sec;if(e.age<=0)gone.push(e.mac);else T.push(e)});return{T,gone}}
+function demo(){let T=[],S=[];[[0,2],[2,0],[0,2]].forEach(([a,b],n)=>{const r=plan(T,a,b,`Frame ${n+1} of 3: ${H[a].n} → ${H[b].n}`);T=r.T;S=S.concat(r.S)});return{S,T}}
+return{H,plan,age,demo}})();
+/*SL-END*/
+(()=>{
+const $$=id=>document.getElementById(id),lab=$$('labApp'),sim=$$('simApp'),NS='http://www.w3.org/2000/svg',H=SLP.H,YL='#f5b800';
+/* e = cable end at the PC, n = point just outside the PC, c = cable corner, p = switch port, r = where a frame rests before the port */
+const G=[{e:[80,98],n:[80,122],c:[80,152],p:[244,152],r:[174,152],x:80,y:70,pl:[267,152]},{e:[80,322],n:[80,292],c:[80,192],p:[244,192],r:[174,192],x:80,y:350,pl:[267,192]},{e:[640,98],n:[640,122],c:[640,152],p:[476,152],r:[546,152],x:640,y:70,pl:[453,152]},{e:[640,322],n:[640,292],c:[640,192],p:[476,192],r:[546,192],x:640,y:350,pl:[453,192]}];
+const DUR={1:2800,2:4200,3:3200,4:2800};
+let T=[],st=[],i=-1,tm=0,sp=1,loop=true,demo=false,playing=false,sel={s:0,d:2},note='';
+const btn=document.createElement('button');btn.dataset.v='sl';btn.textContent='Switching Logic';(document.querySelector('#nv [data-v="tb"]')||$$('thm')).before(btn);
+btn.onclick=()=>{sim.hidden=true;lab.hidden=false;document.querySelectorAll('#nv [data-v]').forEach(x=>x.className=x===btn?'on':'');if(!st.length)start(true);else draw()};
+const stop=()=>{clearTimeout(tm);tm=0;playing=false},alive=()=>$$('slRoot')&&!lab.hidden;
+function sched(){clearTimeout(tm);if(!playing)return;tm=setTimeout(()=>{if(!alive()){playing=false;return}if(i<st.length-1){i++;draw();sched()}else if(demo&&loop){tm=setTimeout(()=>{if(alive())start(true)},2500/sp)}else{playing=false;draw()}},(st[i]?DUR[st[i].phase]:1500)/sp)}
+function start(d){clearTimeout(tm);const r=d?SLP.demo():SLP.plan(T,sel.s,sel.d,`${H[sel.s].n} → ${sel.d==='BC'?'Broadcast':H[sel.d].n}`);if(r.err){stop();st=[];i=-1;note=r.err;return draw()}note='';demo=d;st=r.S;T=r.T;i=0;playing=true;draw();sched()}
+const frame=(a,b)=>`<rect x="-51" y="-9" width="34" height="18" rx="2" fill="var(--pn)" stroke="var(--mu)"/><text x="-34" y="4" style="font-size:9px">ETH</text><rect x="-17" y="-9" width="34" height="18" fill="#fde68a" stroke="var(--mu)"/><text x="0" y="4" style="font-size:9px;fill:#1b2230;font-weight:700">${a}</text><text x="0" y="-13" style="font-size:8px;fill:var(--mu)">sMAC</text><rect x="17" y="-9" width="34" height="18" fill="#bfdbfe" stroke="var(--mu)"/><text x="34" y="4" style="font-size:9px;fill:#1b2230;font-weight:700">${b}</text><text x="34" y="-13" style="font-size:8px;fill:var(--mu)">dMAC</text>`;
+const bub=(x,y,w,h,html)=>`<foreignObject x="${x}" y="${y}" width="${w}" height="${h}"><div xmlns="http://www.w3.org/1999/xhtml" style="box-sizing:border-box;height:100%;background:var(--hl);border:2px solid ${YL};border-radius:10px;padding:6px 9px;font:12px/1.35 system-ui,sans-serif;color:var(--tx);overflow:hidden">${html}</div></foreignObject>`;
+function draw(){const s=i>=0?st[i]:null,Tn=s?s.T:T,inp=s?s.inp:-1,mk=s&&s.marks||{},ph=s?s.phase:0,ri=m=>Tn.findIndex(e=>e.mac===m),rowY=r=>261+22*r;
+let g=`<defs><marker id="slA" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0L8,4L0,8z" fill="${YL}"/></marker><marker id="slB" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0L8,4L0,8z" fill="#3b82f6"/></marker></defs>`;
+G.forEach(o=>g+=`<polyline points="${o.e} ${o.c} ${o.p}" fill="none" stroke="var(--mu)" stroke-width="3"/>`);
+g+=`<rect x="290" y="135" width="140" height="74" rx="8" fill="#1e5f8a"/><text x="360" y="180" style="fill:#fff;font-size:22px;font-weight:700">SW1</text>`;
+H.forEach((h,k)=>{const o=G[k],top=o.y<150,left=o.x<300;
+g+=`<rect x="${o.x-40}" y="${o.y-28}" width="80" height="56" rx="8" fill="var(--pn)" stroke="var(--ac)" stroke-width="2"/><text x="${o.x}" y="${o.y+5}" style="font-weight:700;font-size:15px">${h.n}</text><text x="${o.x}" y="${top?20:392}" style="font-size:11px">IP: ${h.ip}</text><text x="${o.x}" y="${top?33:405}" style="font-size:11px;font-weight:700">MAC: ${h.mac}</text>`;
+g+=`<rect x="${o.pl[0]-23}" y="${o.pl[1]-9}" width="46" height="18" rx="3" fill="var(--pn)" stroke="${inp===k?'var(--ac)':'var(--bd)'}" stroke-width="${inp===k?2.5:1}"/><text x="${o.pl[0]}" y="${o.pl[1]+4}" style="font-size:10px;${inp===k?'font-weight:700':''}">${h.port}</text>`;
+if(mk[k])g+=`<text x="${o.x+(left?64:-64)}" y="${o.y+7}" style="font-size:24px;font-weight:700;fill:${mk[k]==='✔'?'var(--ok)':'var(--bad)'}">${mk[k]}</text>`});
+g+=`<text x="360" y="220" style="font-weight:700;font-size:12px">SW1 MAC Address Table</text><rect x="250" y="226" width="220" height="110" fill="var(--pn)" stroke="var(--tx)"/><rect x="250" y="226" width="220" height="22" fill="var(--bd)" stroke="var(--tx)"/>`;
+g+=[0,1,2,3].map(r=>`<line x1="250" y1="${248+22*r}" x2="470" y2="${248+22*r}" stroke="var(--bd)"/>`).join('')+`<line x1="320" y1="226" x2="320" y2="336" stroke="var(--tx)"/><line x1="395" y1="226" x2="395" y2="336" stroke="var(--tx)"/><text x="285" y="241" style="font-weight:700;font-size:11px">MAC</text><text x="357" y="241" style="font-weight:700;font-size:11px">Port</text><text x="432" y="241" style="font-weight:700;font-size:11px">Age [sec]</text>`;
+const nw=ph===2&&i>0&&!st[i-1].T.some(e=>e.mac===s.hl);
+Tn.forEach((e,r)=>{const hi=s&&s.hl===e.mac;g+=`<g${hi&&nw?' class="slN"':''}><rect x="251" y="${249+22*r}" width="218" height="21" fill="${hi?YL:'transparent'}" opacity="${hi?.55:1}"/><text x="285" y="${264+22*r}" style="font-size:11px">${e.mac}</text><text x="357" y="${264+22*r}" style="font-size:11px">${e.port}</text><text x="432" y="${264+22*r}" style="font-size:11px">${e.age}</text></g>`});
+if(s&&(ph===2||(ph===3&&s.hl))){const o=G[inp],m=ph===2?s.fr[0]:s.fr[1],r=ri(m),x=o.r[0]+(ph===2?0:34),tx=inp>1?470:250;if(r>=0)g+=`<path class="slA" pathLength="1" d="M${x},${o.r[1]+14} L${x},${rowY(r)} L${tx},${rowY(r)}" fill="none" stroke="${ph===2?YL:'#3b82f6'}" stroke-width="3" marker-end="url(#${ph===2?'slA':'slB'})"/>`}
+if(ph===3)g+=`<text x="360" y="352" style="font-size:11px;font-weight:700;fill:${s.hl?'var(--ok)':'var(--bad)'}">${s.fr[1]==='FFFF'?'dMAC FFFF = broadcast → flood':s.hl?'dMAC '+s.fr[1]+' found → forward':'dMAC '+s.fr[1]+' not found → flood'}</text>`;
+const idle='Press <b>Restart demo</b> to watch PC1 and PC3 talk, or choose two PCs and press <b>Send</b>.';
+g+=`<polygon points="345,104 375,104 360,134" fill="var(--hl)" stroke="${YL}" stroke-width="2"/>`+bub(195,4,330,100,s?s.txt:note||idle);
+if(ph===2)g+=bub(inp<2?488:98,236,135,104,nw?'The source MAC is <b>not in the table</b>, so the switch adds a new entry: it <b>learns</b> the MAC.':'The source MAC is <b>already in the table</b>, so the switch only <b>refreshes the aging timer</b>.');
+const chips=['Receive','Learn','Decide','Deliver'].map((n,k)=>`<span class="bk" style="background:${ph===k+1?'var(--ac)':'var(--mu)'}">${k+1}. ${n}</span>`).join(' → '),
+opt=(v,bc)=>H.map((h,k)=>`<option value="${k}" ${v==k?'selected':''}>${h.n} (${h.mac})</option>`).join('')+(bc?`<option value="BC" ${v==='BC'?'selected':''}>Broadcast (FFFF)</option>`:'');
+lab.innerHTML=`<div class="pn" id="slRoot"><style>@keyframes slDraw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}@keyframes slFade{from{opacity:0}to{opacity:1}}.slA{stroke-dasharray:1;stroke-dashoffset:1;animation:slDraw 1.2s .7s forwards}.slN{animation:slFade 1s 1.7s both}</style><h3>Switching logic: learn, flood, forward</h3>
+<div class="row"><button id="slp">${playing?'⏸ Pause':'▶ Play'}</button><button id="sldm">⏮ Restart demo (PC1 ↔ PC3)</button><button id="slb">◀</button><button id="sln">▶</button> Speed <select id="slsp">${[.5,1,1.5,2].map(v=>`<option value="${v}" ${v===sp?'selected':''}>${v}×</option>`).join('')}</select><label><input type="checkbox" id="sllp" ${loop?'checked':''}> Loop demo</label><span class="mu">${s&&s.hdr?s.hdr+' · ':''}${s?'step '+(i+1)+'/'+st.length:''}</span></div>
+<div class="row">${chips}</div>
+<svg id="slS" viewBox="0 0 720 420" style="max-width:860px;margin:6px auto;display:block">${g}</svg>
+<div class="row">Try your own: From <select id="sls">${opt(sel.s)}</select> to <select id="sld">${opt(sel.d,1)}</select><button id="slg">Send ▶</button><button id="slw">Wait 60 s ⏱</button><button id="slr">Reset table</button></div>
+<p class="mu">Educational model: one switch, one VLAN, one device per port, no ARP shown. The frame drawing shows only the fields that matter here. Default MAC ageing is often 300 s on real switches (it can be changed).</p></div>`;
+$$('slp').onclick=()=>{if(playing){stop();draw()}else{if(!st.length)return start(true);if(i>=st.length-1)i=0;playing=true;draw();sched()}};
+$$('sldm').onclick=()=>start(true);$$('slb').onclick=()=>{stop();if(i>0)i--;draw()};$$('sln').onclick=()=>{stop();if(i<st.length-1)i++;draw()};
+$$('slsp').onchange=e=>{sp=+e.target.value;if(playing)sched()};$$('sllp').onchange=e=>loop=e.target.checked;
+$$('sls').onchange=e=>sel.s=+e.target.value;$$('sld').onchange=e=>sel.d=e.target.value==='BC'?'BC':+e.target.value;$$('slg').onclick=()=>start(false);
+$$('slw').onclick=()=>{stop();const r=SLP.age(T,60);T=r.T;st=[];i=-1;note='60 seconds passed: every age went down by 60.'+(r.gone.length?' Removed (timer reached 0): '+r.gone.join(', ')+'.':'');draw()};
+$$('slr').onclick=()=>{stop();T=[];st=[];i=-1;note='The MAC table is empty again.';draw()};
+if(s&&s.fr){const S=$$('slS'),dur=1800/sp,mkf=()=>{const e=document.createElementNS(NS,'g');e.innerHTML=frame(...s.fr);S.append(e);return e},place=(e,p)=>e.setAttribute('transform',`translate(${p[0]},${p[1]})`),
+anim=(e,pts,o={})=>{const d=pts.map((p,k)=>Math.hypot(p[0]-(pts[k-1]||p)[0],p[1]-(pts[k-1]||p)[1])),tot=d.reduce((a,b)=>a+b,0)||1;let c=0;const kf=pts.map((p,k)=>{c+=d[k];return{transform:`translate(${p[0]}px,${p[1]}px)`,opacity:o.op?o.op[k]:1,offset:c/tot}});place(e,pts[pts.length-1]);e.animate(kf,{duration:o.dur||dur,delay:o.delay||0,easing:'ease-in-out',fill:'both'})};
+if(s.at)place(mkf(),G[+s.at.slice(2)].r);const seen=new Set();
+(s.mv||[]).forEach(([a,b])=>{const ka=+a.slice(2),kb=+b.slice(2);
+if(a[1]==='c')anim(mkf(),[G[ka].n,G[ka].c,G[ka].r]);else if(b[1]==='c')anim(mkf(),[G[ka].r,G[ka].c,G[ka].n]);
+else{if(!seen.has(ka)){seen.add(ka);anim(mkf(),[G[ka].r,G[ka].p],{op:[1,0],dur:dur*.5})}anim(mkf(),[G[kb].p,G[kb].r],{op:[0,1],dur:dur*.6,delay:dur*.5})}})}}
+})();
+</script></body></html>
